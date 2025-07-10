@@ -46,6 +46,8 @@ const TicketDetail: React.FC = () => {
   const getAIRecommendations = () => {
     const recommendations = [];
     
+    console.log('Application data:', application); // Debug log
+    
     if (application.exceptions > 0) {
       if (application.status.includes('Missing')) {
         recommendations.push('Request missing KYC documents via automated email');
@@ -53,6 +55,10 @@ const TicketDetail: React.FC = () => {
       
       if (application.status.includes('Low confidence')) {
         recommendations.push('Review AI-extracted fields for accuracy before proceeding');
+      }
+      
+      if (application.status.includes('Escalated')) {
+        recommendations.push('Manual review required - escalate to senior analyst');
       }
     }
     
@@ -67,10 +73,12 @@ const TicketDetail: React.FC = () => {
       }
     }
     
+    // Always provide at least one recommendation
     if (!recommendations.length) {
       recommendations.push('No immediate actions required - proceed with normal workflow');
     }
     
+    console.log('AI Recommendations:', recommendations); // Debug log
     return recommendations;
   };
 
@@ -162,26 +170,31 @@ const TicketDetail: React.FC = () => {
                 <StatusBadge status={application.status} exceptions={application.exceptions} />
                 
                 {/* AI Recommendations Tooltip */}
-                <Tooltip>
+                <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="p-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-2 hover:bg-purple-50 border border-purple-200 rounded-full"
+                      onClick={() => console.log('AI Brain clicked!')}
+                    >
                       <Brain className="w-5 h-5 text-purple-600" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-sm p-3" side="bottom">
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <TooltipContent className="max-w-sm p-4 bg-white border-purple-200" side="bottom" align="end">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 text-purple-800">
                         <Brain className="w-4 h-4" />
                         AI Recommendations
                       </h4>
-                      <ul className="text-xs space-y-1">
+                      <div className="space-y-2">
                         {getAIRecommendations().map((rec, idx) => (
-                          <li key={idx} className="flex items-start gap-1">
-                            <span className="text-purple-600 mt-0.5">•</span>
-                            <span>{rec}</span>
-                          </li>
+                          <div key={idx} className="flex items-start gap-2">
+                            <span className="text-purple-600 mt-1 text-xs">•</span>
+                            <span className="text-xs text-gray-700 leading-relaxed">{rec}</span>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -214,11 +227,14 @@ const TicketDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Validation Steps - Full Width */}
-            <ValidationStepCarousel 
-              currentStep={currentStep}
-              onStepChange={setCurrentStep}
-            />
+            {/* Validation Steps - Horizontal Full Width */}
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Validation Steps</h3>
+              <ValidationStepCarousel 
+                currentStep={currentStep}
+                onStepChange={setCurrentStep}
+              />
+            </div>
           </Card>
 
           {/* Step Content */}
