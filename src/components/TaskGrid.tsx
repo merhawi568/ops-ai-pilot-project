@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +44,17 @@ export const TaskGrid: React.FC = () => {
 
   const handleSortToggle = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const handleTicketIdClick = (app: any, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    console.log('Ticket ID clicked:', app.id);
+    setSelectedApplication(app);
+  };
+
+  const handleRowClick = (app: any) => {
+    console.log('Row clicked:', app.id);
+    setSelectedApplication(app);
   };
 
   return (
@@ -101,10 +111,15 @@ export const TaskGrid: React.FC = () => {
               <tr 
                 key={app.id} 
                 className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => setSelectedApplication(app)}
+                onClick={() => handleRowClick(app)}
               >
                 <td className="py-4">
-                  <span className="font-mono text-sm text-blue-600">{app.id}</span>
+                  <span 
+                    className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                    onClick={(e) => handleTicketIdClick(app, e)}
+                  >
+                    {app.id}
+                  </span>
                 </td>
                 <td className="py-4">
                   <div className="font-medium">{app.clientName}</div>
