@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, FileText, Mail, Database, Settings, Brain, CheckCircle, AlertTriangle, PenTool, CheckSquare, Shield, Eye, HelpCircle, Clock } from 'lucide-react';
+import { ArrowLeft, FileText, Mail, Database, Settings, Brain, CheckCircle, AlertTriangle, PenTool, CheckSquare, Shield, Eye, HelpCircle, Clock, Save, Check } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from '@/components/ValidationStepCarousel';
@@ -20,6 +20,7 @@ const TicketDetail: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [application, setApplication] = useState<Application | null>(null);
   const [humanValidations, setHumanValidations] = useState<Record<string, boolean>>({});
+  const [savedValidations, setSavedValidations] = useState<Record<string, boolean>>({});
   const [selectedField, setSelectedField] = useState<any>(null);
 
   useEffect(() => {
@@ -128,6 +129,41 @@ const TicketDetail: React.FC = () => {
         console.log('No specific data for ticket, using application extractedFields');
         return application?.extractedFields || [];
     }
+  };
+
+  // Save validation function
+  const saveValidationStep = (stepKey: string) => {
+    console.log('Saving validation for step:', stepKey);
+    setSavedValidations(prev => ({ ...prev, [stepKey]: true }));
+  };
+
+  // Check if step has both AI and human validation complete
+  const isStepFullyValidated = (stepKey: string) => {
+    return savedValidations[stepKey] && Object.keys(humanValidations).some(key => 
+      key.startsWith(stepKey) && humanValidations[key]
+    );
+  };
+
+  // Get validation status icon
+  const getValidationStatusIcon = (stepKey: string) => {
+    const isHumanValidated = savedValidations[stepKey];
+    const hasHumanChecks = Object.keys(humanValidations).some(key => 
+      key.startsWith(stepKey) && humanValidations[key]
+    );
+    
+    if (isHumanValidated && hasHumanChecks) {
+      return (
+        <div className="flex items-center gap-1">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <CheckCircle className="w-4 h-4 text-blue-600" />
+        </div>
+      );
+    } else if (isHumanValidated) {
+      return <CheckCircle className="w-4 h-4 text-blue-600" />;
+    } else if (hasHumanChecks) {
+      return <Check className="w-4 h-4 text-green-600" />;
+    }
+    return null;
   };
 
   const getMockPDFViewer = (documentName: string, highlightedField?: string) => {
@@ -404,384 +440,492 @@ const TicketDetail: React.FC = () => {
     switch (currentStep) {
       case 0: // Document Validation
         return (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h4 className="font-semibold">Document Status</h4>
-              {application?.documents.map((doc) => (
-                <Card key={doc.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <div className="font-medium">{doc.name}</div>
-                        <div className="text-sm text-gray-500">
-                          {doc.required ? 'Required' : 'Optional'}
-                          {doc.confidence && ` • ${doc.confidence}% confidence`}
+              <div className="flex items-center gap-2">
+                {getValidationStatusIcon('doc')}
+                <Button 
+                  onClick={() => saveValidationStep('doc')}
+                  disabled={savedValidations['doc']}
+                  className={savedValidations['doc'] ? 'bg-green-600' : ''}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {savedValidations['doc'] ? 'Saved' : 'Save Human Validation'}
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                {application?.documents.map((doc) => (
+                  <Card key={doc.id} className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <div className="font-medium">{doc.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {doc.required ? 'Required' : 'Optional'}
+                            {doc.confidence && ` • ${doc.confidence}% confidence`}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        {doc.validated ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <AlertTriangle className="w-5 h-5 text-red-600" />
+                        )}
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            console.log('Selecting document:', doc);
+                            setSelectedField({ type: 'document', data: doc });
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {doc.validated ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
-                      )}
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          console.log('Selecting document:', doc);
-                          setSelectedField({ type: 'document', data: doc });
-                        }}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Checkbox
+                        checked={humanValidations[`doc-${doc.id}`] || false}
+                        onCheckedChange={(checked) => 
+                          setHumanValidations(prev => ({ ...prev, [`doc-${doc.id}`]: checked as boolean }))
+                        }
+                      />
+                      <label className="text-sm text-gray-700">Human Validation</label>
                     </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <Checkbox
-                      checked={humanValidations[`doc-${doc.id}`] || false}
-                      onCheckedChange={(checked) => 
-                        setHumanValidations(prev => ({ ...prev, [`doc-${doc.id}`]: checked as boolean }))
-                      }
-                    />
-                    <label className="text-sm text-gray-700">Human Validation</label>
+                  </Card>
+                ))}
+              </div>
+              {selectedField?.type === 'document' ? 
+                getMockPDFViewer(selectedField.data.name) :
+                <Card className="p-4 h-96 flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-2" />
+                    <p>Select a document to view</p>
                   </div>
                 </Card>
-              ))}
+              }
             </div>
-            {selectedField?.type === 'document' ? 
-              getMockPDFViewer(selectedField.data.name) :
-              <Card className="p-4 h-96 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2" />
-                  <p>Select a document to view</p>
-                </div>
-              </Card>
-            }
           </div>
         );
 
       case 1: // AI Extraction
         return (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h4 className="font-semibold">Extracted Fields</h4>
-              {extractionData.map((field, idx) => (
-                <Card key={idx} className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium">{field.fieldName}</div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-16 h-2 rounded-full ${getConfidenceColor(field.confidence)}`}>
-                        <div 
-                          className="h-full bg-current rounded-full"
-                          style={{ width: `${field.confidence}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-600">{field.confidence}%</span>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <HelpCircle className="w-4 h-4 text-gray-400" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Extracted from {field.sourceDocument}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          console.log('Selecting extraction field:', field);
-                          setSelectedField({ type: 'extraction', data: field });
-                        }}
-                        className="h-6 w-6 p-0"
-                      >
-                        <Eye className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    defaultValue={field.value}
-                    className="w-full p-2 border rounded mb-2"
-                    placeholder="Edit extracted value"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={humanValidations[`field-${idx}`] || false}
-                      onCheckedChange={(checked) => 
-                        setHumanValidations(prev => ({ ...prev, [`field-${idx}`]: checked as boolean }))
-                      }
-                    />
-                    <label className="text-sm text-gray-700">Human Validation</label>
-                  </div>
-                </Card>
-              ))}
+              <div className="flex items-center gap-2">
+                {getValidationStatusIcon('field')}
+                <Button 
+                  onClick={() => saveValidationStep('field')}
+                  disabled={savedValidations['field']}
+                  className={savedValidations['field'] ? 'bg-green-600' : ''}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {savedValidations['field'] ? 'Saved' : 'Save Human Validation'}
+                </Button>
+              </div>
             </div>
-            <div>
-              {selectedField?.type === 'extraction' && selectedField?.data ? (
-                getMockPDFViewer(selectedField.data.sourceDocument, selectedField.data.fieldName)
-              ) : (
-                <Card className="p-4 h-96 flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <FileText className="w-12 h-12 mx-auto mb-2" />
-                    <p>Click on a field to view source document</p>
-                  </div>
-                </Card>
-              )}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                {extractionData.map((field, idx) => (
+                  <Card key={idx} className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-medium">{field.fieldName}</div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-16 h-2 rounded-full ${getConfidenceColor(field.confidence)}`}>
+                          <div 
+                            className="h-full bg-current rounded-full"
+                            style={{ width: `${field.confidence}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-600">{field.confidence}%</span>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <HelpCircle className="w-4 h-4 text-gray-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Extracted from {field.sourceDocument}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            console.log('Selecting extraction field:', field);
+                            setSelectedField({ type: 'extraction', data: field });
+                          }}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      defaultValue={field.value}
+                      className="w-full p-2 border rounded mb-2"
+                      placeholder="Edit extracted value"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={humanValidations[`field-${idx}`] || false}
+                        onCheckedChange={(checked) => 
+                          setHumanValidations(prev => ({ ...prev, [`field-${idx}`]: checked as boolean }))
+                        }
+                      />
+                      <label className="text-sm text-gray-700">Human Validation</label>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <div>
+                {selectedField?.type === 'extraction' && selectedField?.data ? (
+                  getMockPDFViewer(selectedField.data.sourceDocument, selectedField.data.fieldName)
+                ) : (
+                  <Card className="p-4 h-96 flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <FileText className="w-12 h-12 mx-auto mb-2" />
+                      <p>Click on a field to view source document</p>
+                    </div>
+                  </Card>
+                )}
+              </div>
             </div>
           </div>
         );
 
       case 2: // SOR Cross-check
         return (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h4 className="font-semibold">Data Comparison</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="p-4">
-                  <h5 className="font-medium mb-3 text-blue-700">Extracted Data</h5>
-                  {extractionData.map((field, idx) => (
-                    <div key={idx} className="flex justify-between p-2 bg-blue-50 rounded mb-2">
-                      <span className="text-sm font-medium">{field.fieldName}:</span>
-                      <span className="text-sm">{field.value}</span>
-                    </div>
-                  ))}
-                </Card>
-                <Card className="p-4">
-                  <h5 className="font-medium mb-3 text-green-700">SOR Data</h5>
-                  {ticketId === 'ON-2025-0455' && (
-                    <>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Name:</span>
-                        <span className="text-sm">Elisa Kim</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
-                        <span className="text-sm font-medium">DOB:</span>
-                        <span className="text-sm text-red-700">08/16/1984</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Passport:</span>
-                        <span className="text-sm">N12345678</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Place of Birth:</span>
-                        <span className="text-sm">California, USA</span>
-                      </div>
-                    </>
-                  )}
-                  {ticketId === 'ON-2025-0456' && (
-                    <>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Name:</span>
-                        <span className="text-sm">Devlin Patel</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Address:</span>
-                        <span className="text-sm">123 Main St, City, State</span>
-                      </div>
-                    </>
-                  )}
-                  {ticketId === 'ON-2025-0458' && (
-                    <>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Name:</span>
-                        <span className="text-sm">Rachel Nunez</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
-                        <span className="text-sm font-medium">Income:</span>
-                        <span className="text-sm text-red-700">$175,000</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Tax Year:</span>
-                        <span className="text-sm">2023</span>
-                      </div>
-                    </>
-                  )}
-                  {ticketId === 'ON-2025-0459' && (
-                    <>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Entity Name:</span>
-                        <span className="text-sm">Tyrell Systems LLC</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">EIN:</span>
-                        <span className="text-sm">12-3456789</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                        <span className="text-sm font-medium">Authorized Signatory:</span>
-                        <span className="text-sm">John Tyrell</span>
-                      </div>
-                    </>
-                  )}
-                </Card>
+              <div className="flex items-center gap-2">
+                {getValidationStatusIcon('sor')}
+                <Button 
+                  onClick={() => saveValidationStep('sor')}
+                  disabled={savedValidations['sor']}
+                  className={savedValidations['sor'] ? 'bg-green-600' : ''}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {savedValidations['sor'] ? 'Saved' : 'Save Human Validation'}
+                </Button>
               </div>
-              {ticketId === 'ON-2025-0455' && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800">DOB Mismatch Detected</span>
-                  </div>
-                  <p className="text-sm text-red-700 mt-1">
-                    Extracted: 08/14/1984 vs SOR: 08/16/1984
-                  </p>
-                </div>
-              )}
-              {ticketId === 'ON-2025-0458' && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600" />
-                    <span className="text-sm font-medium text-red-800">Income Mismatch Detected</span>
-                  </div>
-                  <p className="text-sm text-red-700 mt-1">
-                    Extracted: $182,000 vs SOR: $175,000
-                  </p>
-                </div>
-              )}
             </div>
-            <div>
-              {ticketId === 'ON-2025-0455' && getMockPDFViewer('Passport.pdf', 'DOB')}
-              {ticketId === 'ON-2025-0456' && getMockPDFViewer('Driver_License.pdf', 'Name')}
-              {ticketId === 'ON-2025-0458' && getMockPDFViewer('1099.pdf', 'Income')}
-              {ticketId === 'ON-2025-0459' && getMockPDFViewer('Articles_of_Incorporation.pdf', 'Entity Name')}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="p-4">
+                    <h5 className="font-medium mb-3 text-blue-700">Extracted Data</h5>
+                    {extractionData.map((field, idx) => (
+                      <div key={idx} className="flex justify-between p-2 bg-blue-50 rounded mb-2">
+                        <span className="text-sm font-medium">{field.fieldName}:</span>
+                        <span className="text-sm">{field.value}</span>
+                      </div>
+                    ))}
+                  </Card>
+                  <Card className="p-4">
+                    <h5 className="font-medium mb-3 text-green-700">SOR Data</h5>
+                    {ticketId === 'ON-2025-0455' && (
+                      <>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Name:</span>
+                          <span className="text-sm">Elisa Kim</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
+                          <span className="text-sm font-medium">DOB:</span>
+                          <span className="text-sm text-red-700">08/16/1984</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Passport:</span>
+                          <span className="text-sm">N12345678</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Place of Birth:</span>
+                          <span className="text-sm">California, USA</span>
+                        </div>
+                      </>
+                    )}
+                    {ticketId === 'ON-2025-0456' && (
+                      <>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Name:</span>
+                          <span className="text-sm">Devlin Patel</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Address:</span>
+                          <span className="text-sm">123 Main St, City, State</span>
+                        </div>
+                      </>
+                    )}
+                    {ticketId === 'ON-2025-0458' && (
+                      <>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Name:</span>
+                          <span className="text-sm">Rachel Nunez</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
+                          <span className="text-sm font-medium">Income:</span>
+                          <span className="text-sm text-red-700">$175,000</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Tax Year:</span>
+                          <span className="text-sm">2023</span>
+                        </div>
+                      </>
+                    )}
+                    {ticketId === 'ON-2025-0459' && (
+                      <>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Entity Name:</span>
+                          <span className="text-sm">Tyrell Systems LLC</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">EIN:</span>
+                          <span className="text-sm">12-3456789</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Authorized Signatory:</span>
+                          <span className="text-sm">John Tyrell</span>
+                        </div>
+                      </>
+                    )}
+                  </Card>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={humanValidations['sor-review'] || false}
+                    onCheckedChange={(checked) => 
+                      setHumanValidations(prev => ({ ...prev, 'sor-review': checked as boolean }))
+                    }
+                  />
+                  <label className="text-sm text-gray-700">SOR Cross-check Complete</label>
+                </div>
+                {ticketId === 'ON-2025-0455' && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                      <span className="text-sm font-medium text-red-800">DOB Mismatch Detected</span>
+                    </div>
+                    <p className="text-sm text-red-700 mt-1">
+                      Extracted: 08/14/1984 vs SOR: 08/16/1984
+                    </p>
+                  </div>
+                )}
+                {ticketId === 'ON-2025-0458' && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                      <span className="text-sm font-medium text-red-800">Income Mismatch Detected</span>
+                    </div>
+                    <p className="text-sm text-red-700 mt-1">
+                      Extracted: $182,000 vs SOR: $175,000
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div>
+                {ticketId === 'ON-2025-0455' && getMockPDFViewer('Passport.pdf', 'DOB')}
+                {ticketId === 'ON-2025-0456' && getMockPDFViewer('Driver_License.pdf', 'Name')}
+                {ticketId === 'ON-2025-0458' && getMockPDFViewer('1099.pdf', 'Income')}
+                {ticketId === 'ON-2025-0459' && getMockPDFViewer('Articles_of_Incorporation.pdf', 'Entity Name')}
+              </div>
             </div>
           </div>
         );
 
       case 3: // DocuSign Pre-fill
         return (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h4 className="font-semibold">Form Pre-fill Status</h4>
-              <Card className="p-4">
-                <h5 className="font-medium mb-2">Available Data for Pre-fill</h5>
-                <div className="space-y-2 text-sm">
-                  {extractionData.map((field, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>{field.fieldName}: {field.value}</span>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setSelectedField({ type: 'docusign', field: field.fieldName })}
-                        className="h-6 px-2 text-xs ml-auto"
-                      >
-                        <Eye className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                <Button className="mt-4 w-full">Generate DocuSign Form</Button>
-              </Card>
+              <div className="flex items-center gap-2">
+                {getValidationStatusIcon('docusign')}
+                <Button 
+                  onClick={() => saveValidationStep('docusign')}
+                  disabled={savedValidations['docusign']}
+                  className={savedValidations['docusign'] ? 'bg-green-600' : ''}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {savedValidations['docusign'] ? 'Saved' : 'Save Human Validation'}
+                </Button>
+              </div>
             </div>
-            {getMockPDFViewer('DocuSign_Form.pdf', selectedField?.field)}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Card className="p-4">
+                  <h5 className="font-medium mb-2">Available Data for Pre-fill</h5>
+                  <div className="space-y-2 text-sm">
+                    {extractionData.map((field, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span>{field.fieldName}: {field.value}</span>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedField({ type: 'docusign', field: field.fieldName })}
+                          className="h-6 px-2 text-xs ml-auto"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button className="mt-4 w-full">Generate DocuSign Form</Button>
+                  <div className="flex items-center gap-2 mt-4">
+                    <Checkbox
+                      checked={humanValidations['docusign-review'] || false}
+                      onCheckedChange={(checked) => 
+                        setHumanValidations(prev => ({ ...prev, 'docusign-review': checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm text-gray-700">DocuSign Pre-fill Complete</label>
+                  </div>
+                </Card>
+              </div>
+              {getMockPDFViewer('DocuSign_Form.pdf', selectedField?.field)}
+            </div>
           </div>
         );
 
       case 4: // Good Order Review
         return (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h4 className="font-semibold">Good Order Review</h4>
-              <Card className="p-4">
-                <h5 className="font-medium mb-3">Review Items</h5>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Client Signature</span>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedField({ type: 'goodorder', field: 'signature' })}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">Date Signed</span>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedField({ type: 'goodorder', field: 'date' })}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2 mt-4">
-                    <Checkbox
-                      checked={humanValidations['goodorder-review'] || false}
-                      onCheckedChange={(checked) => 
-                        setHumanValidations(prev => ({ ...prev, 'goodorder-review': checked as boolean }))
-                      }
-                    />
-                    <label className="text-sm text-gray-700">Good Order Review Complete</label>
-                  </div>
-                </div>
-              </Card>
+              <div className="flex items-center gap-2">
+                {getValidationStatusIcon('goodorder')}
+                <Button 
+                  onClick={() => saveValidationStep('goodorder')}
+                  disabled={savedValidations['goodorder']}
+                  className={savedValidations['goodorder'] ? 'bg-green-600' : ''}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {savedValidations['goodorder'] ? 'Saved' : 'Save Human Validation'}
+                </Button>
+              </div>
             </div>
-            {getMockPDFViewer('DocuSign_Form.pdf', selectedField?.field)}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Card className="p-4">
+                  <h5 className="font-medium mb-3">Review Items</h5>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">Client Signature</span>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'goodorder', field: 'signature' })}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-sm">Date Signed</span>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'goodorder', field: 'date' })}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 mt-4">
+                      <Checkbox
+                        checked={humanValidations['goodorder-review'] || false}
+                        onCheckedChange={(checked) => 
+                          setHumanValidations(prev => ({ ...prev, 'goodorder-review': checked as boolean }))
+                        }
+                      />
+                      <label className="text-sm text-gray-700">Good Order Review Complete</label>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              {getMockPDFViewer('DocuSign_Form.pdf', selectedField?.field)}
+            </div>
           </div>
         );
 
       case 5: // Workflow Entry
         return (
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h4 className="font-semibold">Workflow Entry</h4>
-              <Card className="p-4">
-                <h5 className="font-medium mb-3">Entry Data</h5>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                    <span className="font-medium">Client Name:</span>
-                    <span>{application?.clientName}</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedField({ type: 'workflow', field: 'Client Name' })}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                    <span className="font-medium">Account Type:</span>
-                    <span>{application?.accountType}</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedField({ type: 'workflow', field: 'Account Type' })}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
-                    <span className="font-medium">Entry Date:</span>
-                    <span>01/08/2025</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedField({ type: 'workflow', field: 'Entry Date' })}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-4">
-                  <Checkbox
-                    checked={humanValidations['workflow-entry'] || false}
-                    onCheckedChange={(checked) => 
-                      setHumanValidations(prev => ({ ...prev, 'workflow-entry': checked as boolean }))
-                    }
-                  />
-                  <label className="text-sm text-gray-700">Workflow Entry Complete</label>
-                </div>
-              </Card>
+              <div className="flex items-center gap-2">
+                {getValidationStatusIcon('workflow')}
+                <Button 
+                  onClick={() => saveValidationStep('workflow')}
+                  disabled={savedValidations['workflow']}
+                  className={savedValidations['workflow'] ? 'bg-green-600' : ''}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {savedValidations['workflow'] ? 'Saved' : 'Save Human Validation'}
+                </Button>
+              </div>
             </div>
-            {getMockPDFViewer('Workflow_Entry.pdf', selectedField?.field)}
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <Card className="p-4">
+                  <h5 className="font-medium mb-3">Entry Data</h5>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                      <span className="font-medium">Client Name:</span>
+                      <span>{application?.clientName}</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'workflow', field: 'Client Name' })}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                      <span className="font-medium">Account Type:</span>
+                      <span>{application?.accountType}</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'workflow', field: 'Account Type' })}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                      <span className="font-medium">Entry Date:</span>
+                      <span>01/08/2025</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'workflow', field: 'Entry Date' })}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <Checkbox
+                      checked={humanValidations['workflow-entry'] || false}
+                      onCheckedChange={(checked) => 
+                        setHumanValidations(prev => ({ ...prev, 'workflow-entry': checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm text-gray-700">Workflow Entry Complete</label>
+                  </div>
+                </Card>
+              </div>
+              {getMockPDFViewer('Workflow_Entry.pdf', selectedField?.field)}
+            </div>
           </div>
         );
 
