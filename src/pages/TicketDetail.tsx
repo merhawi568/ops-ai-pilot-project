@@ -428,15 +428,18 @@ const TicketDetail: React.FC = () => {
                 </Card>
               ))}
             </div>
-            {selectedField?.type === 'extraction' ? 
-              getMockPDFViewer(selectedField.data.sourceDocument, selectedField.data.fieldName) :
-              <Card className="p-4 h-96 flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2" />
-                  <p>Click on a field to view source document</p>
-                </div>
-              </Card>
-            }
+            <div>
+              {selectedField?.type === 'extraction' && selectedField?.data ? (
+                getMockPDFViewer(selectedField.data.sourceDocument, selectedField.data.fieldName)
+              ) : (
+                <Card className="p-4 h-96 flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-2" />
+                    <p>Click on a field to view source document</p>
+                  </div>
+                </Card>
+              )}
+            </div>
           </div>
         );
 
