@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Mail, Database, ExternalLink, Eye, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from './ValidationStepCarousel';
@@ -19,9 +19,8 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
   const [viewMode, setViewMode] = useState<'summary' | 'detailed'>('summary');
 
   const handleFullReview = () => {
-    // Open in new tab
-    const url = `/ticket/${application.id}`;
-    window.open(url, '_blank');
+    // Switch to detailed view instead of opening new tab
+    setViewMode('detailed');
   };
 
   const getIssueDetails = () => {
@@ -64,7 +63,7 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
             title: suggestion.type === 'action' ? 'Action Required' : 
                    suggestion.type === 'warning' ? 'Data Mismatch' : 'Information',
             description: suggestion.message,
-            icon: suggestion.type === 'action' ? ExternalLink : AlertTriangle
+            icon: suggestion.type === 'action' ? Eye : AlertTriangle
           });
         });
       }
@@ -193,7 +192,7 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
         {/* Full Review Button */}
         <Button className="w-full" onClick={handleFullReview}>
           <Eye className="w-4 h-4 mr-2" />
-          Open Full Review in New Tab
+          Open Full Review
         </Button>
       </div>
     );
@@ -201,6 +200,11 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
 
   const renderDetailedView = () => (
     <div className="space-y-6">
+      {/* Back to Summary Button */}
+      <Button variant="outline" onClick={() => setViewMode('summary')} className="w-full">
+        Back to Summary
+      </Button>
+
       {/* Validation Step Carousel */}
       <ValidationStepCarousel 
         currentStep={currentStep}
@@ -309,12 +313,6 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
           )}
         </div>
       </div>
-
-      {/* Action Button */}
-      <Button className="w-full" onClick={handleFullReview}>
-        <ExternalLink className="w-4 h-4 mr-2" />
-        Open Full Detail View in New Tab
-      </Button>
     </div>
   );
 
@@ -379,13 +377,15 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
           <p className="text-xs text-gray-500">{application.id}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setViewMode(viewMode === 'summary' ? 'detailed' : 'summary')}
-          >
-            {viewMode === 'summary' ? 'Detailed' : 'Summary'}
-          </Button>
+          {viewMode === 'detailed' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setViewMode('summary')}
+            >
+              Summary
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={() => setSelectedApplication(null)}>
             <X className="w-4 h-4" />
           </Button>
