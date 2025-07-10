@@ -9,61 +9,72 @@ import { useApplicationStore } from '@/store/useApplicationStore';
 export const NextBestActionPanel: React.FC = () => {
   const { applications } = useApplicationStore();
   
-  const docSignCount = applications.filter(app => 
+  const docSignApps = applications.filter(app => 
     app.stage.toLowerCase().includes('signature') || 
     app.status.toLowerCase().includes('signature')
-  ).length;
+  );
   
-  const missingDocsCount = applications.filter(app => 
+  const missingDocsApps = applications.filter(app => 
     app.status.toLowerCase().includes('missing') ||
     app.exceptions > 0
-  ).length;
+  );
 
-  const urgentCount = applications.filter(app => app.slaHours <= 2).length;
-  const lowConfidenceCount = applications.filter(app => 
+  const urgentApps = applications.filter(app => app.slaHours <= 2);
+  const lowConfidenceApps = applications.filter(app => 
     app.documents?.some(doc => doc.confidence && doc.confidence < 85)
-  ).length;
+  );
+
+  const handleRecommendationClick = (apps: typeof applications) => {
+    if (apps.length > 0) {
+      // Open the first ticket in the category
+      window.open(`/ticket/${apps[0].id}`, '_blank');
+    }
+  };
 
   const recommendations = [
     {
       icon: AlertTriangle,
       title: "Priority: SLA Risk",
-      count: urgentCount,
-      message: `${urgentCount} tickets near SLA breach`,
+      count: urgentApps.length,
+      message: `${urgentApps.length} tickets near SLA breach`,
       action: "Review Now",
       priority: "high",
       color: "bg-red-50 border-red-200",
-      iconColor: "text-red-600"
+      iconColor: "text-red-600",
+      apps: urgentApps
     },
     {
       icon: FileText,
       title: "Document Signatures",
-      count: docSignCount,
-      message: `${docSignCount} tickets awaiting DocuSign`,
+      count: docSignApps.length,
+      message: `${docSignApps.length} tickets awaiting DocuSign`,
       action: "Process",
       priority: "medium",
       color: "bg-orange-50 border-orange-200",
-      iconColor: "text-orange-600"
+      iconColor: "text-orange-600",
+      apps: docSignApps
     },
     {
       icon: Users,
       title: "Missing Documents",
-      count: missingDocsCount,
-      message: `${missingDocsCount} clients need KYC docs`,
+      count: missingDocsApps.length,
+      message: `${missingDocsApps.length} clients need KYC docs`,
       action: "Follow Up",
       priority: "medium",
       color: "bg-yellow-50 border-yellow-200",
-      iconColor: "text-yellow-600"
+      iconColor: "text-yellow-600",
+      apps: missingDocsApps
     },
     {
       icon: Zap,
       title: "AI Confidence",
-      count: lowConfidenceCount,
-      message: `${lowConfidenceCount} extractions need review`,
+      count: lowConfidenceApps.length,
+      message: `${lowConfidenceApps.length} extractions need review`,
       action: "Validate",
       priority: "low",
       color: "bg-blue-50 border-blue-200",
-      iconColor: "text-blue-600"
+      iconColor: "text-blue-600",
+      apps: lowConfidenceApps
     }
   ];
 
@@ -126,6 +137,7 @@ export const NextBestActionPanel: React.FC = () => {
               size="sm" 
               variant={rec.priority === 'high' ? 'default' : 'outline'}
               className="w-full text-xs h-7"
+              onClick={() => handleRecommendationClick(rec.apps)}
             >
               {rec.action}
               <ArrowRight className="w-3 h-3 ml-1" />
