@@ -8,70 +8,142 @@ import { ValidationStep } from '@/types';
 interface ValidationStepCarouselProps {
   currentStep: number;
   onStepChange: (step: number) => void;
+  ticketId?: string;
 }
 
 export const ValidationStepCarousel: React.FC<ValidationStepCarouselProps> = ({
   currentStep,
-  onStepChange
+  onStepChange,
+  ticketId
 }) => {
-  const steps: ValidationStep[] = [
-    {
-      id: 'doc-validation',
-      name: 'Document Validation',
-      status: 'completed',
-      icon: 'FileText',
-      description: 'Verify all required documents are submitted and valid'
-    },
-    {
-      id: 'ai-extraction',
-      name: 'AI Extraction',
-      status: 'exception',
-      icon: 'Eye',
-      description: 'Extract data from submitted documents using OCR'
-    },
-    {
-      id: 'field-validation',
-      name: 'Field Validation',
-      status: 'pending',
-      icon: 'CheckSquare',
-      description: 'Validate extracted field data for accuracy'
-    },
-    {
-      id: 'sor-check',
-      name: 'SOR Cross-check',
-      status: 'pending',
-      icon: 'Database',
-      description: 'Cross-reference data with system of record'
-    },
-    {
-      id: 'docusign-prefill',
-      name: 'DocuSign Pre-fill',
-      status: 'pending',
-      icon: 'PenTool',
-      description: 'Pre-populate DocuSign forms with extracted data'
-    },
-    {
-      id: 'good-order',
-      name: 'Good Order Review',
-      status: 'pending',
-      icon: 'FileCheck',
-      description: 'Review signatures and completion status'
-    },
-    {
-      id: 'workflow-entry',
-      name: 'Workflow Entry',
-      status: 'pending',
-      icon: 'Shield',
-      description: 'Enter application into processing workflow'
-    },
-    {
-      id: 'final-approval',
-      name: 'Final Approval',
-      status: 'pending',
-      icon: 'CheckCircle',
-      description: 'Final review and approval for account opening'
+  const getStepsForTicket = (ticketId: string): ValidationStep[] => {
+    const baseSteps = [
+      {
+        id: 'doc-validation',
+        name: 'Document Validation',
+        status: 'pending' as const,
+        icon: 'FileText',
+        description: 'Verify all required documents are submitted and valid'
+      },
+      {
+        id: 'ai-extraction',
+        name: 'AI Extraction',
+        status: 'pending' as const,
+        icon: 'Eye',
+        description: 'Extract data from submitted documents using OCR'
+      },
+      {
+        id: 'sor-check',
+        name: 'SOR Cross-check',
+        status: 'pending' as const,
+        icon: 'Database',
+        description: 'Cross-reference data with system of record'
+      },
+      {
+        id: 'docusign-prefill',
+        name: 'DocuSign Pre-fill',
+        status: 'pending' as const,
+        icon: 'PenTool',
+        description: 'Pre-populate DocuSign forms with extracted data'
+      },
+      {
+        id: 'good-order',
+        name: 'Good Order Review',
+        status: 'pending' as const,
+        icon: 'FileCheck',
+        description: 'Review signatures and completion status'
+      },
+      {
+        id: 'workflow-entry',
+        name: 'Workflow Entry',
+        status: 'pending' as const,
+        icon: 'Shield',
+        description: 'Enter application into processing workflow'
+      },
+      {
+        id: 'final-validation',
+        name: 'Final Validation',
+        status: 'pending' as const,
+        icon: 'CheckSquare',
+        description: 'Final validation summary and exception review'
+      },
+      {
+        id: 'final-approval',
+        name: 'Final Approval',
+        status: 'pending' as const,
+        icon: 'CheckCircle',
+        description: 'Final review and approval for account opening'
+      }
+    ];
+
+    // Apply ticket-specific statuses
+    switch (ticketId) {
+      case 'ON-2025-0455': // Elisa Kim - Exception Raised
+        return baseSteps.map((step, index) => {
+          switch (step.id) {
+            case 'doc-validation':
+              return { ...step, status: 'completed' as const };
+            case 'ai-extraction':
+              return { ...step, status: 'exception' as const };
+            case 'sor-check':
+              return { ...step, status: 'exception' as const };
+            case 'docusign-prefill':
+              return { ...step, status: 'completed' as const };
+            case 'good-order':
+              return { ...step, status: 'completed' as const };
+            case 'workflow-entry':
+              return { ...step, status: 'completed' as const };
+            case 'final-validation':
+              return { ...step, status: 'exception' as const };
+            case 'final-approval':
+              return { ...step, status: 'pending' as const };
+            default:
+              return step;
+          }
+        });
+
+      case 'ON-2025-0456': // Devlin Patel - Missing Passport
+        return baseSteps.map((step, index) => {
+          switch (step.id) {
+            case 'doc-validation':
+              return { ...step, status: 'exception' as const };
+            case 'final-validation':
+              return { ...step, status: 'exception' as const };
+            default:
+              return step;
+          }
+        });
+
+      case 'ON-2025-0458': // Rachel Nunez - Low Confidence
+        return baseSteps.map((step, index) => {
+          switch (step.id) {
+            case 'doc-validation':
+              return { ...step, status: 'completed' as const };
+            case 'ai-extraction':
+              return { ...step, status: 'exception' as const };
+            case 'sor-check':
+              return { ...step, status: 'completed' as const };
+            case 'final-validation':
+              return { ...step, status: 'exception' as const };
+            default:
+              return step;
+          }
+        });
+
+      case 'ON-2025-0459': // Tyrell Systems - Ready for Approval
+        return baseSteps.map((step, index) => {
+          if (step.id === 'final-approval') {
+            return { ...step, status: 'pending' as const };
+          }
+          return { ...step, status: 'completed' as const };
+        });
+
+      default:
+        return baseSteps;
     }
-  ];
+  };
+
+  const steps = getStepsForTicket(ticketId || '');
 
   const getStatusIcon = (status: string) => {
     switch (status) {

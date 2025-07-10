@@ -3,13 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowLeft, FileText, Mail, Database, Settings, Brain, CheckCircle, AlertTriangle, PenTool, CheckSquare, Database as FileCheck, Shield } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, FileText, Mail, Database, Settings, Brain, CheckCircle, AlertTriangle, PenTool, CheckSquare, Shield, Eye, HelpCircle } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from '@/components/ValidationStepCarousel';
 import { DocumentValidationView } from '@/components/DocumentValidationView';
 import { AIExtractionView } from '@/components/AIExtractionView';
-import { AISuggestionsPanel } from '@/components/AISuggestionsPanel';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ProgressRing } from '@/components/ui/progress-ring';
 
@@ -17,8 +17,9 @@ const TicketDetail: React.FC = () => {
   const { ticketId } = useParams<{ ticketId: string }>();
   const navigate = useNavigate();
   const { applications } = useApplicationStore();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [application, setApplication] = useState<Application | null>(null);
+  const [humanValidations, setHumanValidations] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (ticketId) {
@@ -45,7 +46,7 @@ const TicketDetail: React.FC = () => {
   const getAIRecommendations = () => {
     const recommendations = [];
     
-    console.log('Application data:', application); // Debug log
+    console.log('Application data:', application);
     
     if (application.exceptions > 0) {
       if (application.status.includes('Missing')) {
@@ -72,224 +73,369 @@ const TicketDetail: React.FC = () => {
       }
     }
     
-    // Always provide at least one recommendation
     if (!recommendations.length) {
       recommendations.push('No immediate actions required - proceed with normal workflow');
     }
     
-    console.log('AI Recommendations:', recommendations); // Debug log
+    console.log('AI Recommendations:', recommendations);
     return recommendations;
   };
 
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 90) return 'bg-green-500';
+    if (confidence >= 70) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getExtractionDataForTicket = () => {
+    switch (ticketId) {
+      case 'ON-2025-0455':
+        return [
+          { fieldName: 'DOB', value: '08/14/1984', sourceDocument: 'Passport.pdf', confidence: 90, validated: false }
+        ];
+      case 'ON-2025-0458':
+        return [
+          { fieldName: 'Income', value: '$182,000', sourceDocument: '1099.pdf', confidence: 68, validated: false }
+        ];
+      default:
+        return application.extractedFields || [];
+    }
+  };
+
   const renderStepContent = () => {
+    const extractionData = getExtractionDataForTicket();
+
     switch (currentStep) {
-      case 0:
-        return <DocumentValidationView documents={application.documents} />;
-      case 1:
-        return application.extractedFields ? (
-          <AIExtractionView extractedFields={application.extractedFields} />
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            No extracted fields available
-          </div>
-        );
-      case 2:
-        // Field Validation - using extracted fields if available
-        return application.extractedFields ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold">Field Validation Review</h4>
-              <Button size="sm">Validate All</Button>
-            </div>
-            <div className="space-y-3">
-              {application.extractedFields.map((field, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{field.fieldName}</div>
-                    <div className="text-sm text-gray-600">{field.value}</div>
-                    <div className="text-xs text-gray-400">
-                      Source: {field.sourceDocument} | Confidence: {field.confidence}%
+      case 0: // Document Validation
+        return (
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold">Document Status</h4>
+              {application.documents.map((doc) => (
+                <Card key={doc.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <div className="font-medium">{doc.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {doc.required ? 'Required' : 'Optional'}
+                          {doc.confidence && ` • ${doc.confidence}% confidence`}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {doc.validated ? (
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                      )}
+                      <Button variant="outline" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {field.validated ? (
-                      <div className="text-green-600 text-sm flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" />
-                        Validated
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">Reject</Button>
-                        <Button size="sm">Approve</Button>
-                      </div>
-                    )}
+                  <div className="mt-3 flex items-center gap-2">
+                    <Checkbox
+                      checked={humanValidations[`doc-${doc.id}`] || false}
+                      onCheckedChange={(checked) => 
+                        setHumanValidations(prev => ({ ...prev, [`doc-${doc.id}`]: checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm text-gray-700">Human Validation</label>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            No fields available for validation
+            <Card className="p-4">
+              <h5 className="font-semibold mb-3">PDF Viewer</h5>
+              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-2" />
+                  <p>Select a document to view</p>
+                </div>
+              </div>
+            </Card>
           </div>
         );
-      case 3:
-        // SOR Cross-check - using sorData
+
+      case 1: // AI Extraction
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold">System of Record Cross-check</h4>
-              <Button size="sm">Refresh SOR Data</Button>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold">Extracted Fields</h4>
+              {extractionData.map((field, idx) => (
+                <Card key={idx} className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium">{field.fieldName}</div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-16 h-2 rounded-full ${getConfidenceColor(field.confidence)}`}>
+                        <div 
+                          className="h-full bg-current rounded-full"
+                          style={{ width: `${field.confidence}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-600">{field.confidence}%</span>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="w-4 h-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Extracted from {field.sourceDocument}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    defaultValue={field.value}
+                    className="w-full p-2 border rounded mb-2"
+                    placeholder="Edit extracted value"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={humanValidations[`field-${idx}`] || false}
+                      onCheckedChange={(checked) => 
+                        setHumanValidations(prev => ({ ...prev, [`field-${idx}`]: checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm text-gray-700">Human Validation</label>
+                  </div>
+                </Card>
+              ))}
             </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-medium mb-3 text-gray-700">Extracted Data</h5>
-                <div className="space-y-2">
-                  {application.extractedFields?.map((field, idx) => (
-                    <div key={idx} className="flex justify-between p-2 bg-blue-50 rounded">
+            <Card className="p-4">
+              <h5 className="font-semibold mb-3">Document with Highlighted Fields</h5>
+              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-2" />
+                  <p>PDF with highlighted extraction regions</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 2: // SOR Cross-check
+        return (
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold">Data Comparison</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <h5 className="font-medium mb-3 text-blue-700">Extracted Data</h5>
+                  {extractionData.map((field, idx) => (
+                    <div key={idx} className="flex justify-between p-2 bg-blue-50 rounded mb-2">
                       <span className="text-sm font-medium">{field.fieldName}:</span>
                       <span className="text-sm">{field.value}</span>
                     </div>
-                  )) || <div className="text-sm text-gray-500">No extracted data</div>}
-                </div>
-              </div>
-              <div>
-                <h5 className="font-medium mb-3 text-gray-700">SOR Data</h5>
-                <div className="space-y-2">
-                  <div className="flex justify-between p-2 bg-green-50 rounded">
+                  ))}
+                </Card>
+                <Card className="p-4">
+                  <h5 className="font-medium mb-3 text-green-700">SOR Data</h5>
+                  {ticketId === 'ON-2025-0455' && (
+                    <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                      <span className="text-sm font-medium">DOB:</span>
+                      <span className="text-sm">08/16/1984</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
                     <span className="text-sm font-medium">Name:</span>
                     <span className="text-sm">{application.sorData.name}</span>
                   </div>
-                  {application.sorData.dob && (
-                    <div className="flex justify-between p-2 bg-green-50 rounded">
-                      <span className="text-sm font-medium">DOB:</span>
-                      <span className="text-sm">{application.sorData.dob}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between p-2 bg-green-50 rounded">
-                    <span className="text-sm font-medium">Account Type:</span>
-                    <span className="text-sm">{application.sorData.accountType}</span>
+                </Card>
+              </div>
+              {ticketId === 'ON-2025-0455' && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-medium text-red-800">DOB Mismatch Detected</span>
+                  </div>
+                  <p className="text-sm text-red-700 mt-1">
+                    Extracted: 08/14/1984 vs SOR: 08/16/1984
+                  </p>
+                </div>
+              )}
+            </div>
+            <Card className="p-4">
+              <h5 className="font-semibold mb-3">Source Document</h5>
+              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-2" />
+                  <p>Document showing mismatched field</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 3: // DocuSign Pre-fill
+        return (
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold">Form Pre-fill Status</h4>
+              <Card className="p-4">
+                <h5 className="font-medium mb-2">Available Data for Pre-fill</h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span>Client Name: {application.clientName}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span>Account Type: {application.accountType}</span>
                   </div>
                   {application.sorData.address && (
-                    <div className="flex justify-between p-2 bg-green-50 rounded">
-                      <span className="text-sm font-medium">Address:</span>
-                      <span className="text-sm">{application.sorData.address}</span>
-                    </div>
-                  )}
-                  {application.sorData.income && (
-                    <div className="flex justify-between p-2 bg-green-50 rounded">
-                      <span className="text-sm font-medium">Income:</span>
-                      <span className="text-sm">{application.sorData.income}</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Address: Available</span>
                     </div>
                   )}
                 </div>
-              </div>
+                <Button className="mt-4 w-full">Generate DocuSign Form</Button>
+              </Card>
             </div>
-            {application.aiSuggestions?.some(s => s.message.includes('mismatch')) && (
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-yellow-800">Data Mismatch Detected</span>
+            <Card className="p-4">
+              <h5 className="font-semibold mb-3">Form Preview</h5>
+              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
+                <div className="text-center text-gray-500">
+                  <PenTool className="w-12 h-12 mx-auto mb-2" />
+                  <p>DocuSign form preview</p>
                 </div>
-                <p className="text-sm text-yellow-700 mt-1">
-                  Some fields don't match between extracted data and SOR. Review required.
-                </p>
               </div>
-            )}
+            </Card>
           </div>
         );
-      case 4:
-        // DocuSign Pre-fill
+
+      case 4: // Good Order Review
+      case 5: // Workflow Entry
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold">DocuSign Pre-fill</h4>
-              <Button size="sm">Generate Form</Button>
+          <div className="text-center py-8">
+            <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <div className="text-lg font-medium mb-2">{currentStep === 4 ? 'Good Order Review' : 'Workflow Entry'}</div>
+            <div className="text-sm text-gray-600 mb-6">
+              {currentStep === 4 ? 'All documents and signatures reviewed' : 'Ready to enter processing workflow'}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="p-4">
-                <h5 className="font-medium mb-2">Available Data</h5>
-                <div className="space-y-2 text-sm">
-                  <div>✓ Client Name: {application.clientName}</div>
-                  <div>✓ Account Type: {application.accountType}</div>
-                  {application.sorData.address && <div>✓ Address: Available</div>}
-                  {application.sorData.dob && <div>✓ Date of Birth: Available</div>}
-                  {application.sorData.income && <div>✓ Income: Available</div>}
-                </div>
-              </Card>
-              <Card className="p-4">
-                <h5 className="font-medium mb-2">Form Status</h5>
-                <div className="text-center py-4">
-                  <PenTool className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <div className="text-sm text-gray-500">Ready to generate DocuSign form</div>
-                  <Button className="mt-2" size="sm">Create Form</Button>
-                </div>
-              </Card>
-            </div>
+            <Button size="sm">
+              {currentStep === 4 ? 'Mark Complete' : 'Enter Workflow'}
+            </Button>
           </div>
         );
-      case 5:
-        // Good Order Review
+
+      case 6: // Final Validation
+        const getFinalValidationStatus = () => {
+          switch (ticketId) {
+            case 'ON-2025-0455':
+              return {
+                status: 'exception',
+                issues: ['DOB mismatch between extracted data and SOR'],
+                summary: 'Exception open due to DOB mismatch'
+              };
+            case 'ON-2025-0456':
+              return {
+                status: 'exception',
+                issues: ['Missing passport document', 'KYC incomplete'],
+                summary: 'Failed - Missing required documentation'
+              };
+            case 'ON-2025-0458':
+              return {
+                status: 'pending',
+                issues: ['Low confidence income field (68%)'],
+                summary: 'Pending human confirmation of low-confidence extraction'
+              };
+            case 'ON-2025-0459':
+              return {
+                status: 'completed',
+                issues: [],
+                summary: 'All validations passed - Ready for final approval'
+              };
+            default:
+              return {
+                status: 'pending',
+                issues: [],
+                summary: 'Validation in progress'
+              };
+          }
+        };
+
+        const validationStatus = getFinalValidationStatus();
+
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold">Good Order Review</h4>
-              <Button size="sm">Mark Complete</Button>
+          <div className="space-y-6">
+            <div className="text-center">
+              {validationStatus.status === 'completed' ? (
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              ) : validationStatus.status === 'exception' ? (
+                <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              ) : (
+                <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              )}
+              <h4 className="text-xl font-semibold mb-2">Final Validation Summary</h4>
+              <p className="text-gray-600">{validationStatus.summary}</p>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+
+            <div className="grid grid-cols-2 gap-6">
               <Card className="p-4">
-                <h5 className="font-medium mb-2 flex items-center gap-2">
-                  <FileCheck className="w-4 h-4" />
-                  Documents
-                </h5>
-                <div className="text-sm">
-                  {application.documents.filter(d => d.validated).length}/{application.documents.length} validated
+                <h5 className="font-semibold mb-4">Validation Checklist</h5>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    {application.documents.every(d => d.validated) ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className="text-sm">All required documents present</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {application.exceptions === 0 ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className="text-sm">No open exceptions</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {application.slaHours > 0 ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className="text-sm">SLA requirements met</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {Object.keys(humanValidations).length > 0 ? (
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    )}
+                    <span className="text-sm">Human validations completed</span>
+                  </div>
                 </div>
               </Card>
+
               <Card className="p-4">
-                <h5 className="font-medium mb-2 flex items-center gap-2">
-                  <CheckSquare className="w-4 h-4" />
-                  Fields
-                </h5>
-                <div className="text-sm">
-                  {application.extractedFields?.filter(f => f.validated).length || 0}/
-                  {application.extractedFields?.length || 0} validated
-                </div>
-              </Card>
-              <Card className="p-4">
-                <h5 className="font-medium mb-2 flex items-center gap-2">
-                  <Database className="w-4 h-4" />
-                  SOR Check
-                </h5>
-                <div className="text-sm text-green-600">✓ Completed</div>
+                <h5 className="font-semibold mb-4">Outstanding Issues</h5>
+                {validationStatus.issues.length > 0 ? (
+                  <div className="space-y-2">
+                    {validationStatus.issues.map((issue, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                        <span className="text-sm text-red-700">{issue}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                    <span className="text-sm text-green-700">No outstanding issues</span>
+                  </div>
+                )}
               </Card>
             </div>
           </div>
         );
-      case 6:
-        // Workflow Entry
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold">Workflow Entry</h4>
-              <Button size="sm">Enter Workflow</Button>
-            </div>
-            <div className="text-center py-8">
-              <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <div className="text-sm text-gray-600 mb-4">
-                Application ready to enter processing workflow
-              </div>
-              <div className="space-y-2 text-sm">
-                <div>✓ All documents validated</div>
-                <div>✓ Fields extracted and verified</div>
-                <div>✓ SOR cross-check completed</div>
-                <div>✓ Good order review passed</div>
-              </div>
-            </div>
-          </div>
-        );
-      case 7:
-        // Final Approval
+
+      case 7: // Final Approval
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -318,6 +464,7 @@ const TicketDetail: React.FC = () => {
             </div>
           </div>
         );
+
       default:
         return null;
     }
@@ -357,19 +504,18 @@ const TicketDetail: React.FC = () => {
               <div className="flex items-center gap-4">
                 <StatusBadge status={application.status} exceptions={application.exceptions} />
                 
-                {/* AI Recommendations Tooltip */}
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="p-2 hover:bg-purple-50 border border-purple-200 rounded-full"
+                      className="p-2 hover:bg-purple-50 border border-purple-200 rounded-full transition-colors duration-200"
                       onClick={() => console.log('AI Brain clicked!')}
                     >
                       <Brain className="w-5 h-5 text-purple-600" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-sm p-4 bg-white border-purple-200" side="bottom" align="end">
+                  <TooltipContent className="max-w-sm p-4 bg-white border-purple-200 shadow-lg" side="bottom" align="end">
                     <div className="space-y-3">
                       <h4 className="font-semibold text-sm flex items-center gap-2 text-purple-800">
                         <Brain className="w-4 h-4" />
@@ -388,6 +534,7 @@ const TicketDetail: React.FC = () => {
                 </Tooltip>
               </div>
             </div>
+            
             
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div>
@@ -415,12 +562,12 @@ const TicketDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* Validation Steps - Horizontal Full Width */}
             <div className="border-t pt-4">
               <h3 className="text-sm font-medium text-gray-700 mb-3">Validation Steps</h3>
               <ValidationStepCarousel 
                 currentStep={currentStep}
                 onStepChange={setCurrentStep}
+                ticketId={ticketId}
               />
             </div>
           </Card>
@@ -432,8 +579,8 @@ const TicketDetail: React.FC = () => {
           </Card>
 
           {/* Additional Information */}
+          
           <div className="grid grid-cols-12 gap-6">
-            {/* Documents */}
             <div className="col-span-4">
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -459,7 +606,6 @@ const TicketDetail: React.FC = () => {
               </Card>
             </div>
 
-            {/* Communications */}
             <div className="col-span-4">
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -482,7 +628,6 @@ const TicketDetail: React.FC = () => {
               </Card>
             </div>
 
-            {/* SOR Data */}
             <div className="col-span-4">
               <Card className="p-6">
                 <div className="flex items-center gap-2 mb-4">
