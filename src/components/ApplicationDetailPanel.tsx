@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { ValidationStepCarousel } from './ValidationStepCarousel';
 import { DocumentValidationView } from './DocumentValidationView';
 import { AIExtractionView } from './AIExtractionView';
 import { AISuggestionsPanel } from './AISuggestionsPanel';
+import { EmailDraftModal } from './EmailDraftModal';
 
 interface ApplicationDetailPanelProps {
   application: Application;
@@ -16,10 +16,33 @@ interface ApplicationDetailPanelProps {
 
 export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ application }) => {
   const { setSelectedApplication } = useApplicationStore();
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [emailAction, setEmailAction] = useState<string>('');
 
   const handleFullReview = () => {
     // Open ticket detail in new tab
     window.open(`/ticket/${application.id}`, '_blank');
+  };
+
+  const handleTakeAction = (action: string, category: string) => {
+    console.log('Taking action:', action, 'Category:', category);
+    
+    if (action.toLowerCase().includes('email') || action.toLowerCase().includes('send') || action.toLowerCase().includes('request')) {
+      setEmailAction(action);
+      setIsEmailModalOpen(true);
+    } else if (action.toLowerCase().includes('review') || action.toLowerCase().includes('validation')) {
+      // Navigate to document validation view
+      window.open(`/ticket/${application.id}#documents`, '_blank');
+    } else if (action.toLowerCase().includes('process') || action.toLowerCase().includes('priority')) {
+      // Navigate to processing workflow
+      window.open(`/ticket/${application.id}#workflow`, '_blank');
+    } else if (action.toLowerCase().includes('approve')) {
+      // Navigate to approval section
+      window.open(`/ticket/${application.id}#approval`, '_blank');
+    } else {
+      // Default: open ticket detail
+      window.open(`/ticket/${application.id}`, '_blank');
+    }
   };
 
   const getIssueDetails = () => {
@@ -203,7 +226,11 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
                       <span className="text-xs bg-white bg-opacity-70 px-2 py-1 rounded text-gray-600">
                         {rec.category}
                       </span>
-                      <Button size="sm" className="h-7 text-xs bg-white text-gray-700 hover:bg-gray-50 shadow-sm">
+                      <Button 
+                        size="sm" 
+                        className="h-7 text-xs bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                        onClick={() => handleTakeAction(rec.action, rec.category)}
+                      >
                         Take Action
                       </Button>
                     </div>
@@ -331,6 +358,18 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
           <Eye className="w-4 h-4 mr-2" />
           Open Full Review
         </Button>
+
+        {/* Email Draft Modal */}
+        <EmailDraftModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          clientName={application.clientName}
+          suggestion={{
+            type: 'action',
+            message: emailAction.includes('Document') ? 'Missing passport document required' : 'Follow-up required',
+            confidence: 92
+          }}
+        />
       </div>
     );
   };
