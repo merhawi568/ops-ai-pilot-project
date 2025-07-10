@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,8 +56,7 @@ export const AIExtractionView: React.FC<AIExtractionViewProps> = ({ extractedFie
                     <Input
                       value={editedFields[field.fieldName] || field.value}
                       onChange={(e) => handleFieldEdit(field.fieldName, e.target.value)}
-                      className="w-full"
-                      size="sm"
+                      className="w-full h-8 text-sm"
                     />
                   </td>
                   <td className="py-2 text-gray-600">{field.sourceDocument}</td>
