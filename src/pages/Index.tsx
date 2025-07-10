@@ -22,7 +22,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">USPB Operations Platform</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Operations Platform</h1>
               <p className="text-sm text-gray-600">AI-Powered Client Onboarding Dashboard</p>
             </div>
             <Button 
