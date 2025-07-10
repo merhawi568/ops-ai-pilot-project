@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
@@ -21,6 +20,7 @@ const TicketDetail: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [application, setApplication] = useState<Application | null>(null);
   const [humanValidations, setHumanValidations] = useState<Record<string, boolean>>({});
+  const [selectedField, setSelectedField] = useState<any>(null);
 
   useEffect(() => {
     if (ticketId) {
@@ -92,15 +92,145 @@ const TicketDetail: React.FC = () => {
     switch (ticketId) {
       case 'ON-2025-0455':
         return [
-          { fieldName: 'DOB', value: '08/14/1984', sourceDocument: 'Passport.pdf', confidence: 90, validated: false }
+          { fieldName: 'DOB', value: '08/14/1984', sourceDocument: 'Passport.pdf', confidence: 90, validated: false },
+          { fieldName: 'Name', value: 'Elisa Kim', sourceDocument: 'Passport.pdf', confidence: 95, validated: false },
+          { fieldName: 'Passport Number', value: 'N12345678', sourceDocument: 'Passport.pdf', confidence: 98, validated: false }
+        ];
+      case 'ON-2025-0456':
+        return [
+          { fieldName: 'Name', value: 'Devlin Patel', sourceDocument: 'Driver_License.pdf', confidence: 92, validated: false },
+          { fieldName: 'Address', value: '123 Main St, City, State', sourceDocument: 'Utility_Bill.pdf', confidence: 88, validated: false }
         ];
       case 'ON-2025-0458':
         return [
-          { fieldName: 'Income', value: '$182,000', sourceDocument: '1099.pdf', confidence: 68, validated: false }
+          { fieldName: 'Income', value: '$182,000', sourceDocument: '1099.pdf', confidence: 68, validated: false },
+          { fieldName: 'Name', value: 'Rachel Nunez', sourceDocument: '1099.pdf', confidence: 94, validated: false },
+          { fieldName: 'Tax Year', value: '2023', sourceDocument: '1099.pdf', confidence: 99, validated: false }
+        ];
+      case 'ON-2025-0459':
+        return [
+          { fieldName: 'Entity Name', value: 'Tyrell Systems LLC', sourceDocument: 'Articles_of_Incorporation.pdf', confidence: 96, validated: false },
+          { fieldName: 'EIN', value: '12-3456789', sourceDocument: 'EIN_Letter.pdf', confidence: 99, validated: false },
+          { fieldName: 'Authorized Signatory', value: 'John Tyrell', sourceDocument: 'Resolution.pdf', confidence: 93, validated: false }
         ];
       default:
         return application.extractedFields || [];
     }
+  };
+
+  const getMockPDFViewer = (documentName: string, highlightedField?: string) => {
+    const getPDFContent = () => {
+      switch (documentName) {
+        case 'Passport.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs relative">
+              <div className="text-center mb-4 font-bold">UNITED STATES OF AMERICA</div>
+              <div className="text-center mb-2">PASSPORT</div>
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div>
+                  <div className="bg-gray-200 w-24 h-32 mb-2"></div>
+                  <div className="text-xs">Photo</div>
+                </div>
+                <div className="space-y-1">
+                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                    <strong>Name:</strong> Kim, Elisa
+                  </div>
+                  <div className={`${highlightedField === 'DOB' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                    <strong>Date of Birth:</strong> 14 AUG 1984
+                  </div>
+                  <div className={`${highlightedField === 'Passport Number' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                    <strong>Passport No:</strong> N12345678
+                  </div>
+                  <div><strong>Place of Birth:</strong> California, USA</div>
+                  <div><strong>Issue Date:</strong> 15 JUN 2020</div>
+                  <div><strong>Expiration:</strong> 14 JUN 2030</div>
+                </div>
+              </div>
+            </div>
+          );
+        case '1099.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">Form 1099-MISC</div>
+              <div className="text-center mb-4">Miscellaneous Income</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div><strong>PAYER:</strong></div>
+                  <div>ABC Corporation</div>
+                  <div>123 Business Ave</div>
+                  <div>New York, NY 10001</div>
+                </div>
+                <div>
+                  <div><strong>RECIPIENT:</strong></div>
+                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                    Rachel Nunez
+                  </div>
+                  <div>456 Oak Street</div>
+                  <div>Los Angeles, CA 90210</div>
+                </div>
+              </div>
+              <div className="mt-6 border-t pt-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <div><strong>Box 1 - Rents:</strong></div>
+                    <div className={`text-lg font-bold ${highlightedField === 'Income' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                      $182,000.00
+                    </div>
+                  </div>
+                  <div>
+                    <div><strong>Tax Year:</strong></div>
+                    <div className={`${highlightedField === 'Tax Year' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                      2023
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        case 'Articles_of_Incorporation.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">ARTICLES OF INCORPORATION</div>
+              <div className="text-center mb-4">State of Delaware</div>
+              <div className="space-y-3">
+                <div>
+                  <strong>Article I - Name:</strong>
+                  <div className={`${highlightedField === 'Entity Name' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                    The name of the corporation is Tyrell Systems LLC
+                  </div>
+                </div>
+                <div>
+                  <strong>Article II - Purpose:</strong>
+                  <div>To engage in any lawful act or activity for which corporations may be organized...</div>
+                </div>
+                <div>
+                  <strong>Article III - Registered Agent:</strong>
+                  <div>Corporation Service Company</div>
+                  <div>2711 Centerville Road, Suite 400</div>
+                  <div>Wilmington, DE 19808</div>
+                </div>
+              </div>
+            </div>
+          );
+        default:
+          return (
+            <div className="bg-gray-100 h-full rounded flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-2" />
+                <p>PDF: {documentName}</p>
+                <p className="text-sm">Document preview would appear here</p>
+              </div>
+            </div>
+          );
+      }
+    };
+
+    return (
+      <Card className="p-4 h-96">
+        <h5 className="font-semibold mb-3">{documentName}</h5>
+        {getPDFContent()}
+      </Card>
+    );
   };
 
   const renderStepContent = () => {
@@ -131,7 +261,11 @@ const TicketDetail: React.FC = () => {
                       ) : (
                         <AlertTriangle className="w-5 h-5 text-red-600" />
                       )}
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'document', data: doc })}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                     </div>
@@ -148,15 +282,15 @@ const TicketDetail: React.FC = () => {
                 </Card>
               ))}
             </div>
-            <Card className="p-4">
-              <h5 className="font-semibold mb-3">PDF Viewer</h5>
-              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
+            {selectedField?.type === 'document' ? 
+              getMockPDFViewer(selectedField.data.name) :
+              <Card className="p-4 h-96 flex items-center justify-center">
                 <div className="text-center text-gray-500">
                   <FileText className="w-12 h-12 mx-auto mb-2" />
                   <p>Select a document to view</p>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            }
           </div>
         );
 
@@ -185,6 +319,14 @@ const TicketDetail: React.FC = () => {
                           <p>Extracted from {field.sourceDocument}</p>
                         </TooltipContent>
                       </Tooltip>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'extraction', data: field })}
+                        className="h-6 w-6 p-0"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
                   <input
@@ -205,15 +347,15 @@ const TicketDetail: React.FC = () => {
                 </Card>
               ))}
             </div>
-            <Card className="p-4">
-              <h5 className="font-semibold mb-3">Document with Highlighted Fields</h5>
-              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
+            {selectedField?.type === 'extraction' ? 
+              getMockPDFViewer(selectedField.data.sourceDocument, selectedField.data.fieldName) :
+              <Card className="p-4 h-96 flex items-center justify-center">
                 <div className="text-center text-gray-500">
                   <FileText className="w-12 h-12 mx-auto mb-2" />
-                  <p>PDF with highlighted extraction regions</p>
+                  <p>Click on a field to view source document</p>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            }
           </div>
         );
 
@@ -258,15 +400,7 @@ const TicketDetail: React.FC = () => {
                 </div>
               )}
             </div>
-            <Card className="p-4">
-              <h5 className="font-semibold mb-3">Source Document</h5>
-              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2" />
-                  <p>Document showing mismatched field</p>
-                </div>
-              </div>
-            </Card>
+            {getMockPDFViewer('Passport.pdf', 'DOB')}
           </div>
         );
 
@@ -535,7 +669,6 @@ const TicketDetail: React.FC = () => {
                 </Tooltip>
               </div>
             </div>
-            
             
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div>
