@@ -92,9 +92,10 @@ const TicketDetail: React.FC = () => {
     switch (ticketId) {
       case 'ON-2025-0455':
         return [
-          { fieldName: 'DOB', value: '08/14/1984', sourceDocument: 'Passport.pdf', confidence: 90, validated: false },
           { fieldName: 'Name', value: 'Elisa Kim', sourceDocument: 'Passport.pdf', confidence: 95, validated: false },
-          { fieldName: 'Passport Number', value: 'N12345678', sourceDocument: 'Passport.pdf', confidence: 98, validated: false }
+          { fieldName: 'DOB', value: '08/14/1984', sourceDocument: 'Passport.pdf', confidence: 90, validated: false },
+          { fieldName: 'Passport Number', value: 'N12345678', sourceDocument: 'Passport.pdf', confidence: 98, validated: false },
+          { fieldName: 'Place of Birth', value: 'California, USA', sourceDocument: 'Passport.pdf', confidence: 92, validated: false }
         ];
       case 'ON-2025-0456':
         return [
@@ -103,8 +104,8 @@ const TicketDetail: React.FC = () => {
         ];
       case 'ON-2025-0458':
         return [
-          { fieldName: 'Income', value: '$182,000', sourceDocument: '1099.pdf', confidence: 68, validated: false },
           { fieldName: 'Name', value: 'Rachel Nunez', sourceDocument: '1099.pdf', confidence: 94, validated: false },
+          { fieldName: 'Income', value: '$182,000', sourceDocument: '1099.pdf', confidence: 68, validated: false },
           { fieldName: 'Tax Year', value: '2023', sourceDocument: '1099.pdf', confidence: 99, validated: false }
         ];
       case 'ON-2025-0459':
@@ -132,18 +133,75 @@ const TicketDetail: React.FC = () => {
                   <div className="text-xs">Photo</div>
                 </div>
                 <div className="space-y-1">
-                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
                     <strong>Name:</strong> Kim, Elisa
                   </div>
-                  <div className={`${highlightedField === 'DOB' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                  <div className={`${highlightedField === 'DOB' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
                     <strong>Date of Birth:</strong> 14 AUG 1984
                   </div>
-                  <div className={`${highlightedField === 'Passport Number' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                  <div className={`${highlightedField === 'Passport Number' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
                     <strong>Passport No:</strong> N12345678
                   </div>
-                  <div><strong>Place of Birth:</strong> California, USA</div>
+                  <div className={`${highlightedField === 'Place of Birth' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                    <strong>Place of Birth:</strong> California, USA
+                  </div>
                   <div><strong>Issue Date:</strong> 15 JUN 2020</div>
                   <div><strong>Expiration:</strong> 14 JUN 2030</div>
+                </div>
+              </div>
+            </div>
+          );
+        case 'DocuSign_Form.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">ACCOUNT OPENING FORM</div>
+              <div className="space-y-3">
+                <div className={`${highlightedField === 'Name' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
+                  <strong>Full Name:</strong> [PRE-FILLED] Elisa Kim
+                </div>
+                <div className={`${highlightedField === 'DOB' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
+                  <strong>Date of Birth:</strong> [PRE-FILLED] 08/14/1984
+                </div>
+                <div className={`${highlightedField === 'Passport Number' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
+                  <strong>ID Number:</strong> [PRE-FILLED] N12345678
+                </div>
+                <div className="mt-6">
+                  <div className={`${highlightedField === 'signature' ? 'bg-green-200 border-2 border-green-400 p-2' : 'border-2 border-dashed border-gray-300 p-2'} h-16`}>
+                    <div className="text-xs text-gray-500 mb-1">Client Signature:</div>
+                    {highlightedField === 'signature' && (
+                      <div className="italic font-script text-lg">Elisa Kim</div>
+                    )}
+                  </div>
+                </div>
+                <div className={`${highlightedField === 'date' ? 'bg-green-200 border-2 border-green-400 p-1' : 'border p-1'}`}>
+                  <strong>Date Signed:</strong> {highlightedField === 'date' ? '01/08/2025' : '[To be filled]'}
+                </div>
+              </div>
+            </div>
+          );
+        case 'Workflow_Entry.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">WORKFLOW ENTRY FORM</div>
+              <div className="space-y-2">
+                <div className={`${highlightedField === 'Client Name' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Client Name:</strong> Elisa Kim
+                </div>
+                <div className={`${highlightedField === 'Account Type' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Account Type:</strong> Individual
+                </div>
+                <div className={`${highlightedField === 'Entry Date' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Workflow Entry Date:</strong> 01/08/2025
+                </div>
+                <div className={`${highlightedField === 'Status' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Status:</strong> Entered - Pending Final Validation
+                </div>
+                <div className="mt-4 p-2 bg-gray-50 rounded">
+                  <strong>Source Documents:</strong>
+                  <ul className="list-disc list-inside text-xs mt-1">
+                    <li>Passport.pdf - Validated ✓</li>
+                    <li>DocuSign_Form.pdf - Completed ✓</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -228,7 +286,9 @@ const TicketDetail: React.FC = () => {
     return (
       <Card className="p-4 h-96">
         <h5 className="font-semibold mb-3">{documentName}</h5>
-        {getPDFContent()}
+        <div className="h-80 overflow-y-auto">
+          {getPDFContent()}
+        </div>
       </Card>
     );
   };
@@ -377,15 +437,21 @@ const TicketDetail: React.FC = () => {
                 <Card className="p-4">
                   <h5 className="font-medium mb-3 text-green-700">SOR Data</h5>
                   {ticketId === 'ON-2025-0455' && (
-                    <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                      <span className="text-sm font-medium">DOB:</span>
-                      <span className="text-sm">08/16/1984</span>
-                    </div>
+                    <>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Name:</span>
+                        <span className="text-sm">Elisa Kim</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
+                        <span className="text-sm font-medium">DOB:</span>
+                        <span className="text-sm text-red-700">08/16/1984</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Passport:</span>
+                        <span className="text-sm">N12345678</span>
+                      </div>
+                    </>
                   )}
-                  <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
-                    <span className="text-sm font-medium">Name:</span>
-                    <span className="text-sm">{application.sorData.name}</span>
-                  </div>
                 </Card>
               </div>
               {ticketId === 'ON-2025-0455' && (
@@ -400,7 +466,9 @@ const TicketDetail: React.FC = () => {
                 </div>
               )}
             </div>
-            {getMockPDFViewer('Passport.pdf', 'DOB')}
+            <div>
+              {getMockPDFViewer('Passport.pdf', 'DOB')}
+            </div>
           </div>
         );
 
@@ -412,48 +480,132 @@ const TicketDetail: React.FC = () => {
               <Card className="p-4">
                 <h5 className="font-medium mb-2">Available Data for Pre-fill</h5>
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span>Client Name: {application.clientName}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span>Account Type: {application.accountType}</span>
-                  </div>
-                  {application.sorData.address && (
-                    <div className="flex items-center gap-2">
+                  {extractionData.map((field, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      <span>Address: Available</span>
+                      <span>{field.fieldName}: {field.value}</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedField({ type: 'docusign', field: field.fieldName })}
+                        className="h-6 px-2 text-xs ml-auto"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
                     </div>
-                  )}
+                  ))}
                 </div>
                 <Button className="mt-4 w-full">Generate DocuSign Form</Button>
               </Card>
             </div>
-            <Card className="p-4">
-              <h5 className="font-semibold mb-3">Form Preview</h5>
-              <div className="bg-gray-100 h-96 rounded flex items-center justify-center">
-                <div className="text-center text-gray-500">
-                  <PenTool className="w-12 h-12 mx-auto mb-2" />
-                  <p>DocuSign form preview</p>
-                </div>
-              </div>
-            </Card>
+            {getMockPDFViewer('DocuSign_Form.pdf', selectedField?.field)}
           </div>
         );
 
       case 4: // Good Order Review
+        return (
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold">Good Order Review</h4>
+              <Card className="p-4">
+                <h5 className="font-medium mb-3">Review Items</h5>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm">Client Signature</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedField({ type: 'goodorder', field: 'signature' })}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span className="text-sm">Date Signed</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedField({ type: 'goodorder', field: 'date' })}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <Checkbox
+                      checked={humanValidations['goodorder-review'] || false}
+                      onCheckedChange={(checked) => 
+                        setHumanValidations(prev => ({ ...prev, 'goodorder-review': checked as boolean }))
+                      }
+                    />
+                    <label className="text-sm text-gray-700">Good Order Review Complete</label>
+                  </div>
+                </div>
+              </Card>
+            </div>
+            {getMockPDFViewer('DocuSign_Form.pdf', selectedField?.field)}
+          </div>
+        );
+
       case 5: // Workflow Entry
         return (
-          <div className="text-center py-8">
-            <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <div className="text-lg font-medium mb-2">{currentStep === 4 ? 'Good Order Review' : 'Workflow Entry'}</div>
-            <div className="text-sm text-gray-600 mb-6">
-              {currentStep === 4 ? 'All documents and signatures reviewed' : 'Ready to enter processing workflow'}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h4 className="font-semibold">Workflow Entry</h4>
+              <Card className="p-4">
+                <h5 className="font-medium mb-3">Entry Data</h5>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                    <span className="font-medium">Client Name:</span>
+                    <span>{application.clientName}</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedField({ type: 'workflow', field: 'Client Name' })}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                    <span className="font-medium">Account Type:</span>
+                    <span>{application.accountType}</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedField({ type: 'workflow', field: 'Account Type' })}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                    <span className="font-medium">Entry Date:</span>
+                    <span>01/08/2025</span>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedField({ type: 'workflow', field: 'Entry Date' })}
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-4">
+                  <Checkbox
+                    checked={humanValidations['workflow-entry'] || false}
+                    onCheckedChange={(checked) => 
+                      setHumanValidations(prev => ({ ...prev, 'workflow-entry': checked as boolean }))
+                    }
+                  />
+                  <label className="text-sm text-gray-700">Workflow Entry Complete</label>
+                </div>
+              </Card>
             </div>
-            <Button size="sm">
-              {currentStep === 4 ? 'Mark Complete' : 'Enter Workflow'}
-            </Button>
+            {getMockPDFViewer('Workflow_Entry.pdf', selectedField?.field)}
           </div>
         );
 
@@ -769,22 +921,33 @@ const TicketDetail: React.FC = () => {
                   <h4 className="font-semibold">SOR Data</h4>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <div><span className="text-gray-500">Name:</span> {application.sorData.name}</div>
-                  {application.sorData.dob && (
-                    <div><span className="text-gray-500">DOB:</span> {application.sorData.dob}</div>
-                  )}
-                  <div><span className="text-gray-500">Account Type:</span> {application.sorData.accountType}</div>
-                  {application.sorData.address && (
-                    <div><span className="text-gray-500">Address:</span> {application.sorData.address}</div>
-                  )}
-                  {application.sorData.income && (
-                    <div><span className="text-gray-500">Income:</span> {application.sorData.income}</div>
-                  )}
-                  {application.sorData.entityName && (
-                    <div><span className="text-gray-500">Entity:</span> {application.sorData.entityName}</div>
-                  )}
-                  {application.sorData.complianceId && (
-                    <div><span className="text-gray-500">Compliance ID:</span> {application.sorData.complianceId}</div>
+                  {ticketId === 'ON-2025-0455' ? (
+                    <>
+                      <div><span className="text-gray-500">Name:</span> Elisa Kim</div>
+                      <div><span className="text-gray-500">DOB:</span> 08/16/1984</div>
+                      <div><span className="text-gray-500">Account Type:</span> Individual</div>
+                      <div><span className="text-gray-500">Passport:</span> N12345678</div>
+                    </>
+                  ) : (
+                    <>
+                      <div><span className="text-gray-500">Name:</span> {application.sorData.name}</div>
+                      {application.sorData.dob && (
+                        <div><span className="text-gray-500">DOB:</span> {application.sorData.dob}</div>
+                      )}
+                      <div><span className="text-gray-500">Account Type:</span> {application.sorData.accountType}</div>
+                      {application.sorData.address && (
+                        <div><span className="text-gray-500">Address:</span> {application.sorData.address}</div>
+                      )}
+                      {application.sorData.income && (
+                        <div><span className="text-gray-500">Income:</span> {application.sorData.income}</div>
+                      )}
+                      {application.sorData.entityName && (
+                        <div><span className="text-gray-500">Entity:</span> {application.sorData.entityName}</div>
+                      )}
+                      {application.sorData.complianceId && (
+                        <div><span className="text-gray-500">Compliance ID:</span> {application.sorData.complianceId}</div>
+                      )}
+                    </>
                   )}
                 </div>
               </Card>
