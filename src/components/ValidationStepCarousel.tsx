@@ -100,23 +100,23 @@ export const ValidationStepCarousel: React.FC<ValidationStepCarouselProps> = ({
     <Card className="p-4 mb-6">
       <h3 className="text-lg font-semibold mb-4">Validation Progress</h3>
       
-      <div className="flex overflow-x-auto gap-2 pb-2">
+      <div className="grid grid-cols-8 gap-2 mb-4">
         {steps.map((step, index) => (
           <Button
             key={step.id}
             variant="ghost"
             onClick={() => onStepChange(index)}
-            className={`flex-shrink-0 min-w-32 h-16 flex flex-col items-center justify-center border-2 ${getStatusColor(step.status, index === currentStep)}`}
+            className={`h-16 flex flex-col items-center justify-center border-2 ${getStatusColor(step.status, index === currentStep)} text-xs`}
           >
             {getStatusIcon(step.status)}
-            <span className="text-xs font-medium mt-1 text-center leading-tight">
+            <span className="font-medium mt-1 text-center leading-tight">
               {step.name}
             </span>
           </Button>
         ))}
       </div>
       
-      <div className="mt-4 text-sm text-gray-600">
+      <div className="text-sm text-gray-600">
         <strong>{steps[currentStep]?.name}:</strong> {steps[currentStep]?.description}
       </div>
     </Card>
