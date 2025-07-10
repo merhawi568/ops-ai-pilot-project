@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { SummaryStatusPanel } from '@/components/SummaryStatusPanel';
 import { MyWorkPanel } from '@/components/MyWorkPanel';
-import { TaskGrid } from '@/components/TaskGrid';
 import { NextBestActionPanel } from '@/components/NextBestActionPanel';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { VoiceChatAssistant } from '@/components/VoiceChatAssistant';
@@ -55,9 +54,6 @@ const Index = () => {
             <NextBestActionPanel />
           </div>
         </div>
-
-        {/* Task Grid */}
-        <TaskGrid />
       </main>
 
       {/* Side Panel */}

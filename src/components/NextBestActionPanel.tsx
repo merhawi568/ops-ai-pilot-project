@@ -3,11 +3,13 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, ArrowRight, Clock, AlertTriangle, FileText, Users, Zap, TrendingUp, Target, Bot, Sparkles, Eye, CheckCircle } from 'lucide-react';
+import { Brain, ArrowRight, Clock, AlertTriangle, FileText, Users, Zap, TrendingUp, Target, Bot, Sparkles, Eye, CheckCircle, User, Calendar, Activity } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
+import { StatusBadge } from '@/components/StatusBadge';
+import { ProgressRing } from '@/components/ui/progress-ring';
 
 export const NextBestActionPanel: React.FC = () => {
-  const { applications } = useApplicationStore();
+  const { applications, setSelectedApplication } = useApplicationStore();
   
   // Filter applications based on actual data patterns
   const lowConfidenceApps = applications.filter(app => 
@@ -37,6 +39,14 @@ export const NextBestActionPanel: React.FC = () => {
       // Navigate to the first application in the category
       window.open(`/ticket/${apps[0].id}`, '_blank');
     }
+  };
+
+  const handleTicketClick = (app: any) => {
+    window.open(`/ticket/${app.id}`, '_blank');
+  };
+
+  const handleRowClick = (app: any) => {
+    setSelectedApplication(app);
   };
 
   // Generate AI recommendations based on actual application data
@@ -133,19 +143,42 @@ export const NextBestActionPanel: React.FC = () => {
 
   const aiRecommendations = generateAIRecommendations();
 
-  // Active workflows based on actual application data
-  const activeWorkflows = applications.slice(0, 3).map((app, index) => ({
-    id: app.id,
-    type: `${app.accountType} Account`,
-    client: app.clientName,
-    stage: app.stage,
-    progress: Math.round((app.progress / app.totalSteps) * 100),
-    status: `AI ${app.stage.toLowerCase().includes('extraction') ? 'processing documents' : 
-             app.stage.toLowerCase().includes('validation') ? 'validating data' :
-             app.stage.toLowerCase().includes('collection') ? 'tracking documents' :
-             'analyzing application'}`,
-    statusColor: app.exceptions > 0 ? "text-amber-600" : "text-green-600"
-  }));
+  const getSLAColor = (hours: number) => {
+    if (hours <= 2) return 'text-red-600';
+    if (hours <= 6) return 'text-yellow-600';
+    return 'text-green-600';
+  };
+
+  const getAIInsight = (app: any) => {
+    if (app.exceptions > 0) {
+      if (app.status.includes('Missing')) return 'Waiting for client response';
+      if (app.status.includes('Low confidence')) return 'Requires manual validation';
+      if (app.status.includes('Escalated')) return 'Under senior review';
+      return 'Exception handling in progress';
+    }
+    
+    if (app.slaHours <= 2) return 'Urgent - SLA deadline approaching';
+    if (app.stage.includes('Extraction')) return 'AI processing documents';
+    if (app.stage.includes('Validation')) return 'Validating extracted data';
+    if (app.stage.includes('Collection')) return 'Tracking document submissions';
+    if (app.stage.includes('Approval')) return 'Ready for final approval';
+    
+    return 'Processing normally';
+  };
+
+  const getNextAction = (app: any) => {
+    if (app.exceptions > 0) {
+      if (app.status.includes('Missing')) return 'Follow up with client';
+      if (app.status.includes('Low confidence')) return 'Review AI extractions';
+      if (app.status.includes('Escalated')) return 'Senior review required';
+      return 'Resolve exception';
+    }
+    
+    if (app.slaHours <= 2) return 'Prioritize processing';
+    if (app.stage.includes('Approval')) return 'Schedule approval';
+    
+    return 'Continue workflow';
+  };
 
   if (aiRecommendations.length === 0) {
     return (
@@ -232,44 +265,108 @@ export const NextBestActionPanel: React.FC = () => {
         </div>
       </Card>
 
-      {/* Active Workflows */}
+      {/* Enhanced Active Client Onboarding Workflows */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Client Onboarding Workflows</h3>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Active Client Onboarding Pipeline</h3>
+            <p className="text-sm text-gray-600">AI-monitored workflows with real-time insights and recommendations</p>
+          </div>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+            <Activity className="w-3 h-3 mr-1" />
+            {applications.length} Active
+          </Badge>
+        </div>
         
-        <div className="space-y-4">
-          {activeWorkflows.map((workflow, index) => (
-            <div key={workflow.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm font-medium text-gray-600">
-                    {workflow.id}
-                  </span>
-                  <span className="font-medium text-gray-900">{workflow.type}</span>
-                </div>
-                <span className="text-sm text-gray-600">{workflow.client}</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">{workflow.stage}</span>
-                  <span className="text-sm font-medium text-gray-600">{workflow.progress}%</span>
-                  <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${workflow.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Bot className="w-4 h-4 text-green-600" />
-                  <span className={`text-sm font-medium ${workflow.statusColor}`}>
-                    {workflow.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b text-left">
+                <th className="pb-3 text-sm font-medium text-gray-600">Ticket ID</th>
+                <th className="pb-3 text-sm font-medium text-gray-600">Client & Account</th>
+                <th className="pb-3 text-sm font-medium text-gray-600">Current Stage</th>
+                <th className="pb-3 text-sm font-medium text-gray-600">Status & Progress</th>
+                <th className="pb-3 text-sm font-medium text-gray-600">AI Insights</th>
+                <th className="pb-3 text-sm font-medium text-gray-600">Next Action</th>
+                <th className="pb-3 text-sm font-medium text-gray-600">SLA Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map((app) => (
+                <tr 
+                  key={app.id} 
+                  className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => handleRowClick(app)}
+                >
+                  <td className="py-4">
+                    <span 
+                      className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTicketClick(app);
+                      }}
+                    >
+                      {app.id}
+                    </span>
+                  </td>
+                  <td className="py-4">
+                    <div>
+                      <div className="font-medium text-gray-900">{app.clientName}</div>
+                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                        <User className="w-3 h-3" />
+                        {app.accountType}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{app.stage}</div>
+                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                        <Calendar className="w-3 h-3" />
+                        Step {app.progress} of {app.totalSteps}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div className="space-y-2">
+                      <StatusBadge status={app.status} exceptions={app.exceptions} />
+                      <div className="flex items-center gap-2">
+                        <ProgressRing 
+                          progress={app.progress} 
+                          total={app.totalSteps} 
+                          size="sm" 
+                        />
+                        <span className="text-xs text-gray-500">
+                          {Math.round((app.progress / app.totalSteps) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div className="flex items-center gap-2">
+                      <Bot className={`w-4 h-4 ${app.exceptions > 0 ? 'text-amber-600' : 'text-green-600'}`} />
+                      <span className={`text-xs font-medium ${app.exceptions > 0 ? 'text-amber-700' : 'text-green-700'}`}>
+                        {getAIInsight(app)}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                      {getNextAction(app)}
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span className={`text-sm font-medium ${getSLAColor(app.slaHours)}`}>
+                        {app.slaHours}h left
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Card>
 
