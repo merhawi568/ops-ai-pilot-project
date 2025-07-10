@@ -3,92 +3,149 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Brain, ArrowRight, Clock, AlertTriangle, FileText, Users, Zap, TrendingUp, Target, Bot, Sparkles } from 'lucide-react';
+import { Brain, ArrowRight, Clock, AlertTriangle, FileText, Users, Zap, TrendingUp, Target, Bot, Sparkles, Eye, CheckCircle } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 
 export const NextBestActionPanel: React.FC = () => {
   const { applications } = useApplicationStore();
   
-  const docSignApps = applications.filter(app => 
-    app.stage.toLowerCase().includes('signature') || 
-    app.status.toLowerCase().includes('signature')
+  // Filter applications based on actual data patterns
+  const lowConfidenceApps = applications.filter(app => 
+    app.documents?.some(doc => doc.confidence && doc.confidence < 85) ||
+    app.status.toLowerCase().includes('low confidence')
   );
   
   const missingDocsApps = applications.filter(app => 
     app.status.toLowerCase().includes('missing') ||
+    app.status.toLowerCase().includes('passport') ||
     app.exceptions > 0
   );
 
-  const urgentApps = applications.filter(app => app.slaHours <= 2);
-  const lowConfidenceApps = applications.filter(app => 
-    app.documents?.some(doc => doc.confidence && doc.confidence < 85)
+  const urgentApps = applications.filter(app => app.slaHours <= 6);
+  
+  const escalatedApps = applications.filter(app => 
+    app.status.toLowerCase().includes('escalated')
   );
 
-  const handleRecommendationClick = (apps: typeof applications) => {
+  const readyForApprovalApps = applications.filter(app => 
+    app.status.toLowerCase().includes('approval') ||
+    app.progress >= 7
+  );
+
+  const handleRecommendationClick = (apps: typeof applications, action?: string) => {
     if (apps.length > 0) {
-      // Open the first ticket in the category
+      // Navigate to the first application in the category
       window.open(`/ticket/${apps[0].id}`, '_blank');
     }
   };
 
-  const aiRecommendations = [
-    {
-      icon: Target,
-      title: "Optimize Mortgage Pipeline",
-      description: `${urgentApps.length + docSignApps.length} applications have been pre-validated and can be fast-tracked. Expected time savings: ${Math.floor((urgentApps.length + docSignApps.length) * 1.5)} hours.`,
-      primaryAction: "Apply Optimization",
-      secondaryAction: "View Details",
-      priority: "high",
-      color: "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
-      iconColor: "text-blue-600",
-      apps: [...urgentApps, ...docSignApps],
-      savings: `${Math.floor((urgentApps.length + docSignApps.length) * 1.5)} hours`,
-      aiConfidence: 92
-    },
-    {
-      icon: AlertTriangle,
-      title: "Document Expiration Alert",
-      description: `${missingDocsApps.length} loan applications have documents expiring within 48 hours. Auto-renewal requests can be sent.`,
-      primaryAction: "Send Renewals",
-      secondaryAction: "Review List",
-      priority: "medium",
-      color: "bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200",
-      iconColor: "text-amber-600",
-      apps: missingDocsApps,
-      urgency: "48 hours",
-      aiConfidence: 87
-    }
-  ];
+  // Generate AI recommendations based on actual application data
+  const generateAIRecommendations = () => {
+    const recommendations = [];
 
-  const activeWorkflows = [
-    {
-      id: "WF-001",
-      type: "Mortgage Application",
-      client: "Sarah Johnson",
-      stage: "Underwriting",
-      progress: 75,
-      status: "AI reviewing income docs",
-      statusColor: "text-green-600"
-    },
-    {
-      id: "WF-002", 
-      type: "Account Opening",
-      client: "Tech Corp Inc",
-      stage: "Compliance Check",
-      progress: 60,
-      status: "KYC verification in progress",
-      statusColor: "text-green-600"
-    },
-    {
-      id: "WF-003",
-      type: "Wire Transfer",
-      client: "John Doe", 
-      stage: "Approval",
-      progress: 90,
-      status: "Ready for auto-approval",
-      statusColor: "text-green-600"
+    // Low confidence document extraction recommendation
+    if (lowConfidenceApps.length > 0) {
+      recommendations.push({
+        icon: Eye,
+        title: "Document Review Required",
+        description: `${lowConfidenceApps.length} applications have low-confidence field extractions (${lowConfidenceApps.map(app => app.clientName).join(', ')}). AI suggests manual review to maintain quality standards.`,
+        primaryAction: "Review Documents",
+        secondaryAction: "View All",
+        priority: "high",
+        color: "bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200",
+        iconColor: "text-amber-600",
+        apps: lowConfidenceApps,
+        aiConfidence: 94,
+        category: "Quality Assurance"
+      });
     }
-  ];
+
+    // Missing documents recommendation
+    if (missingDocsApps.length > 0) {
+      recommendations.push({
+        icon: FileText,
+        title: "Document Collection Priority",
+        description: `${missingDocsApps.length} clients need document follow-up (${missingDocsApps.map(app => app.clientName).join(', ')}). Auto-generated email templates available for immediate outreach.`,
+        primaryAction: "Send Requests",
+        secondaryAction: "Draft Emails",
+        priority: "high",
+        color: "bg-gradient-to-r from-red-50 to-pink-50 border-red-200",
+        iconColor: "text-red-600",
+        apps: missingDocsApps,
+        aiConfidence: 89,
+        category: "Document Management"
+      });
+    }
+
+    // Urgent SLA recommendation
+    if (urgentApps.length > 0) {
+      recommendations.push({
+        icon: Clock,
+        title: "SLA Alert - Immediate Action",
+        description: `${urgentApps.length} applications approaching SLA deadlines within 6 hours. Priority processing recommended to maintain service levels.`,
+        primaryAction: "Process Now",
+        secondaryAction: "View Queue",
+        priority: "critical",
+        color: "bg-gradient-to-r from-red-50 to-rose-50 border-red-300",
+        iconColor: "text-red-700",
+        apps: urgentApps,
+        aiConfidence: 98,
+        category: "SLA Management"
+      });
+    }
+
+    // Escalation resolution recommendation
+    if (escalatedApps.length > 0) {
+      recommendations.push({
+        icon: AlertTriangle,
+        title: "Escalation Resolution",
+        description: `${escalatedApps.length} applications require senior review. AI has pre-analyzed common resolution patterns to expedite processing.`,
+        primaryAction: "Review Cases",
+        secondaryAction: "View Suggestions",
+        priority: "medium",
+        color: "bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200",
+        iconColor: "text-purple-600",
+        apps: escalatedApps,
+        aiConfidence: 87,
+        category: "Exception Handling"
+      });
+    }
+
+    // Ready for approval recommendation
+    if (readyForApprovalApps.length > 0) {
+      recommendations.push({
+        icon: CheckCircle,
+        title: "Ready for Final Approval",
+        description: `${readyForApprovalApps.length} applications completed validation and ready for approval. Streamlined review process available.`,
+        primaryAction: "Approve Batch",
+        secondaryAction: "Individual Review",
+        priority: "low",
+        color: "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200",
+        iconColor: "text-green-600",
+        apps: readyForApprovalApps,
+        aiConfidence: 96,
+        category: "Final Processing"
+      });
+    }
+
+    return recommendations;
+  };
+
+  const aiRecommendations = generateAIRecommendations();
+
+  // Active workflows based on actual application data
+  const activeWorkflows = applications.slice(0, 3).map((app, index) => ({
+    id: app.id,
+    type: `${app.accountType} Account`,
+    client: app.clientName,
+    stage: app.stage,
+    progress: Math.round((app.progress / app.totalSteps) * 100),
+    status: `AI ${app.stage.toLowerCase().includes('extraction') ? 'processing documents' : 
+             app.stage.toLowerCase().includes('validation') ? 'validating data' :
+             app.stage.toLowerCase().includes('collection') ? 'tracking documents' :
+             'analyzing application'}`,
+    statusColor: app.exceptions > 0 ? "text-amber-600" : "text-green-600"
+  }));
 
   if (aiRecommendations.length === 0) {
     return (
@@ -98,9 +155,9 @@ export const NextBestActionPanel: React.FC = () => {
             <TrendingUp className="w-5 h-5 text-green-600" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">All Optimized!</h3>
+            <h3 className="font-semibold text-gray-900 mb-1">All Systems Optimized!</h3>
             <p className="text-sm text-gray-700">
-              AI has processed all workflows. Your pipeline is running at peak efficiency.
+              AI has processed all workflows. Your onboarding pipeline is running at peak efficiency.
             </p>
           </div>
         </div>
@@ -119,7 +176,7 @@ export const NextBestActionPanel: React.FC = () => {
           <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900 mb-1">AI Agent Recommendations</h2>
             <p className="text-sm text-gray-600">
-              Intelligent insights powered by machine learning to optimize your workflow
+              Intelligent insights powered by client onboarding patterns and document analysis
             </p>
           </div>
           <Badge variant="secondary" className="bg-purple-100 text-purple-700">
@@ -143,6 +200,9 @@ export const NextBestActionPanel: React.FC = () => {
                     <Badge variant="outline" className="text-xs">
                       {rec.aiConfidence}% confidence
                     </Badge>
+                    <Badge variant="secondary" className="text-xs bg-gray-100">
+                      {rec.category}
+                    </Badge>
                   </div>
                   
                   <p className="text-sm text-gray-700 mb-4 leading-relaxed">
@@ -153,14 +213,14 @@ export const NextBestActionPanel: React.FC = () => {
                     <Button 
                       size="sm" 
                       className="bg-blue-600 hover:bg-blue-700 text-white"
-                      onClick={() => handleRecommendationClick(rec.apps)}
+                      onClick={() => handleRecommendationClick(rec.apps, rec.primaryAction)}
                     >
                       {rec.primaryAction}
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => handleRecommendationClick(rec.apps)}
+                      onClick={() => handleRecommendationClick(rec.apps, rec.secondaryAction)}
                     >
                       {rec.secondaryAction}
                     </Button>
@@ -174,7 +234,7 @@ export const NextBestActionPanel: React.FC = () => {
 
       {/* Active Workflows */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Workflows</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Client Onboarding Workflows</h3>
         
         <div className="space-y-4">
           {activeWorkflows.map((workflow, index) => (
