@@ -17,7 +17,7 @@ export const SummaryStatusPanel: React.FC = () => {
   return (
     <Card className="p-4 mb-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Operations Overview</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Overview</h3>
         <div className="flex gap-6">
           {stats.map((stat, index) => (
             <button

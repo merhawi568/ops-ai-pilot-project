@@ -31,7 +31,7 @@ export const MyWorkPanel: React.FC = () => {
 
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">My Work</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">My Tasks</h3>
       <div className="grid grid-cols-2 gap-4">
         {workStats.map((stat, index) => (
           <div key={index} className="text-center">
