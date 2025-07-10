@@ -1,14 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useApplicationStore } from '@/store/useApplicationStore';
-import { Clock, Filter, SortAsc } from 'lucide-react';
+import { Clock, Filter, SortAsc, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const TaskGrid: React.FC = () => {
   const { applications, filters, setFilter, setSelectedApplication } = useApplicationStore();
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const filteredApplications = applications.filter(app => {
     if (filters.status === 'All') return true;
@@ -18,10 +25,26 @@ export const TaskGrid: React.FC = () => {
     return true;
   });
 
+  const sortedApplications = [...filteredApplications].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return a.slaHours - b.slaHours;
+    } else {
+      return b.slaHours - a.slaHours;
+    }
+  });
+
   const getSLAColor = (hours: number) => {
     if (hours <= 2) return 'text-red-600';
     if (hours <= 6) return 'text-yellow-600';
     return 'text-green-600';
+  };
+
+  const handleFilterChange = (filterValue: string) => {
+    setFilter('status', filterValue);
+  };
+
+  const handleSortToggle = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
   return (
@@ -29,13 +52,33 @@ export const TaskGrid: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold">Task Queue</h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-          <Button variant="outline" size="sm">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleFilterChange('All')}>
+                All Applications
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleFilterChange('With Exceptions')}>
+                With Exceptions
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleFilterChange('Final Review')}>
+                Final Review
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleFilterChange('Waiting Signature')}>
+                Waiting Signature
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button variant="outline" size="sm" onClick={handleSortToggle}>
             <SortAsc className="w-4 h-4 mr-2" />
-            Sort by SLA
+            Sort by SLA ({sortOrder === 'asc' ? 'Low to High' : 'High to Low'})
           </Button>
         </div>
       </div>
@@ -54,7 +97,7 @@ export const TaskGrid: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredApplications.map((app) => (
+            {sortedApplications.map((app) => (
               <tr 
                 key={app.id} 
                 className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
