@@ -23,13 +23,18 @@ const TicketDetail: React.FC = () => {
   const [selectedField, setSelectedField] = useState<any>(null);
 
   useEffect(() => {
+    console.log('TicketDetail mounted with ticketId:', ticketId);
+    console.log('Available applications:', applications);
+    
     if (ticketId) {
       const app = applications.find(app => app.id === ticketId);
+      console.log('Found application:', app);
       setApplication(app || null);
     }
   }, [ticketId, applications]);
 
   if (!application) {
+    console.log('No application found, showing not found message');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="p-8 text-center">
@@ -44,12 +49,14 @@ const TicketDetail: React.FC = () => {
     );
   }
 
+  console.log('Rendering TicketDetail for application:', application);
+
   const getAIRecommendations = () => {
     const recommendations = [];
     
     console.log('Application data:', application);
     
-    if (application.exceptions > 0) {
+    if (application && application.exceptions > 0) {
       if (application.status.includes('Missing')) {
         recommendations.push('Request missing KYC documents via automated email');
       }
@@ -63,11 +70,11 @@ const TicketDetail: React.FC = () => {
       }
     }
     
-    if (application.slaHours <= 6) {
+    if (application && application.slaHours <= 6) {
       recommendations.push(`SLA deadline approaching (${application.slaHours}h left) - escalate to next available agent`);
     }
     
-    if (application.stage === 'Document Validation' && application.documents.length > 0) {
+    if (application && application.stage === 'Document Validation' && application.documents.length > 0) {
       const unvalidatedDocs = application.documents.filter(doc => !doc.validated).length;
       if (unvalidatedDocs > 0) {
         recommendations.push(`${unvalidatedDocs} documents pending validation - complete document review`);
@@ -89,8 +96,11 @@ const TicketDetail: React.FC = () => {
   };
 
   const getExtractionDataForTicket = () => {
+    console.log('Getting extraction data for ticket:', ticketId);
+    
     switch (ticketId) {
       case 'ON-2025-0455':
+        console.log('Returning data for ON-2025-0455');
         return [
           { fieldName: 'Name', value: 'Elisa Kim', sourceDocument: 'Passport.pdf', confidence: 95, validated: false },
           { fieldName: 'DOB', value: '08/14/1984', sourceDocument: 'Passport.pdf', confidence: 90, validated: false },
@@ -115,11 +125,14 @@ const TicketDetail: React.FC = () => {
           { fieldName: 'Authorized Signatory', value: 'John Tyrell', sourceDocument: 'Resolution.pdf', confidence: 93, validated: false }
         ];
       default:
-        return application.extractedFields || [];
+        console.log('No specific data for ticket, using application extractedFields');
+        return application?.extractedFields || [];
     }
   };
 
   const getMockPDFViewer = (documentName: string, highlightedField?: string) => {
+    console.log('Rendering PDF viewer for:', documentName, 'with highlighted field:', highlightedField);
+    
     const getPDFContent = () => {
       switch (documentName) {
         case 'Passport.pdf':
@@ -294,7 +307,9 @@ const TicketDetail: React.FC = () => {
   };
 
   const renderStepContent = () => {
+    console.log('Rendering step content for step:', currentStep);
     const extractionData = getExtractionDataForTicket();
+    console.log('Extraction data:', extractionData);
 
     switch (currentStep) {
       case 0: // Document Validation
@@ -302,7 +317,7 @@ const TicketDetail: React.FC = () => {
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-4">
               <h4 className="font-semibold">Document Status</h4>
-              {application.documents.map((doc) => (
+              {application?.documents.map((doc) => (
                 <Card key={doc.id} className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -324,7 +339,10 @@ const TicketDetail: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => setSelectedField({ type: 'document', data: doc })}
+                        onClick={() => {
+                          console.log('Selecting document:', doc);
+                          setSelectedField({ type: 'document', data: doc });
+                        }}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -382,7 +400,10 @@ const TicketDetail: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => setSelectedField({ type: 'extraction', data: field })}
+                        onClick={() => {
+                          console.log('Selecting extraction field:', field);
+                          setSelectedField({ type: 'extraction', data: field });
+                        }}
                         className="h-6 w-6 p-0"
                       >
                         <Eye className="w-3 h-3" />
@@ -449,6 +470,10 @@ const TicketDetail: React.FC = () => {
                       <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
                         <span className="text-sm font-medium">Passport:</span>
                         <span className="text-sm">N12345678</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Place of Birth:</span>
+                        <span className="text-sm">California, USA</span>
                       </div>
                     </>
                   )}
@@ -562,7 +587,7 @@ const TicketDetail: React.FC = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
                     <span className="font-medium">Client Name:</span>
-                    <span>{application.clientName}</span>
+                    <span>{application?.clientName}</span>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -573,7 +598,7 @@ const TicketDetail: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
                     <span className="font-medium">Account Type:</span>
-                    <span>{application.accountType}</span>
+                    <span>{application?.accountType}</span>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -666,7 +691,7 @@ const TicketDetail: React.FC = () => {
                 <h5 className="font-semibold mb-4">Validation Checklist</h5>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    {application.documents.every(d => d.validated) ? (
+                    {application?.documents.every(d => d.validated) ? (
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -674,7 +699,7 @@ const TicketDetail: React.FC = () => {
                     <span className="text-sm">All required documents present</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {application.exceptions === 0 ? (
+                    {application && application.exceptions === 0 ? (
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -682,7 +707,7 @@ const TicketDetail: React.FC = () => {
                     <span className="text-sm">No open exceptions</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {application.slaHours > 0 ? (
+                    {application && application.slaHours > 0 ? (
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -741,11 +766,11 @@ const TicketDetail: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
                 <div className="text-left space-y-1">
                   <div className="text-xs text-gray-500">Client:</div>
-                  <div className="text-sm font-medium">{application.clientName}</div>
+                  <div className="text-sm font-medium">{application?.clientName}</div>
                 </div>
                 <div className="text-left space-y-1">
                   <div className="text-xs text-gray-500">Account Type:</div>
-                  <div className="text-sm font-medium">{application.accountType}</div>
+                  <div className="text-sm font-medium">{application?.accountType}</div>
                 </div>
               </div>
             </div>
@@ -852,7 +877,10 @@ const TicketDetail: React.FC = () => {
               <h3 className="text-sm font-medium text-gray-700 mb-3">Validation Steps</h3>
               <ValidationStepCarousel 
                 currentStep={currentStep}
-                onStepChange={setCurrentStep}
+                onStepChange={(step) => {
+                  console.log('Step changed to:', step);
+                  setCurrentStep(step);
+                }}
                 ticketId={ticketId}
               />
             </div>
@@ -865,7 +893,6 @@ const TicketDetail: React.FC = () => {
           </Card>
 
           {/* Additional Information */}
-          
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-4">
               <Card className="p-6">
@@ -927,6 +954,7 @@ const TicketDetail: React.FC = () => {
                       <div><span className="text-gray-500">DOB:</span> 08/16/1984</div>
                       <div><span className="text-gray-500">Account Type:</span> Individual</div>
                       <div><span className="text-gray-500">Passport:</span> N12345678</div>
+                      <div><span className="text-gray-500">Place of Birth:</span> California, USA</div>
                     </>
                   ) : (
                     <>
