@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle, Brain, Lightbulb } from 'lucide-react';
+import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle, Brain, Lightbulb, Sparkles, Bot, Zap } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from './ValidationStepCarousel';
@@ -78,18 +79,22 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
       if (application.status.includes('Missing')) {
         recommendations.push({
           priority: 'high',
-          action: 'Request Missing Documents',
-          description: 'Send automated email to client requesting missing KYC documents',
-          icon: Mail
+          action: 'Send Document Request',
+          description: 'Auto-generated email template ready for missing KYC documents',
+          icon: Mail,
+          aiConfidence: 92,
+          category: 'Document Management'
         });
       }
       
       if (application.status.includes('Low confidence')) {
         recommendations.push({
           priority: 'medium',
-          action: 'Manual Data Review',
-          description: 'Review AI-extracted fields for accuracy before proceeding',
-          icon: Eye
+          action: 'Review AI Extractions',
+          description: 'AI has flagged specific fields requiring manual validation',
+          icon: Eye,
+          aiConfidence: 78,
+          category: 'Quality Assurance'
         });
       }
     }
@@ -97,9 +102,11 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
     if (application.slaHours <= 6) {
       recommendations.push({
         priority: application.slaHours <= 2 ? 'high' : 'medium',
-        action: 'Prioritize Processing',
-        description: `SLA deadline approaching - escalate to next available agent`,
-        icon: Clock
+        action: 'Priority Processing',
+        description: `SLA deadline in ${application.slaHours}h - escalate to available agent`,
+        icon: Clock,
+        aiConfidence: 96,
+        category: 'SLA Management'
       });
     }
     
@@ -109,8 +116,10 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
         recommendations.push({
           priority: 'medium',
           action: 'Complete Document Validation',
-          description: `${unvalidatedDocs} documents pending validation`,
-          icon: FileText
+          description: `${unvalidatedDocs} documents awaiting validation with pre-analysis available`,
+          icon: FileText,
+          aiConfidence: 89,
+          category: 'Document Processing'
         });
       }
     }
@@ -120,7 +129,9 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
         priority: 'low',
         action: 'Continue Standard Processing',
         description: 'No immediate actions required - proceed with normal workflow',
-        icon: CheckCircle
+        icon: CheckCircle,
+        aiConfidence: 95,
+        category: 'Standard Processing'
       });
     }
     
@@ -132,54 +143,85 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
     const aiRecommendations = getAIRecommendations();
     
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* AI Agent Header - More Prominent */}
+        <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-200 p-5 rounded-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl shadow-sm">
+              <Sparkles className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">AI Agent Analysis</h3>
+              <p className="text-sm text-gray-600">
+                Real-time insights for {application.clientName}'s onboarding
+              </p>
+            </div>
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm">
+              <Bot className="w-4 h-4 text-purple-600" />
+              <span className="text-xs font-medium text-purple-700">AI Powered</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced AI Recommendations */}
+        <div className="space-y-4">
+          <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <Brain className="w-5 h-5 text-purple-600" />
+            Smart Recommendations
+          </h4>
+          
+          {aiRecommendations.map((rec, idx) => {
+            const Icon = rec.icon;
+            const priorityColors = {
+              high: 'from-red-50 to-pink-50 border-red-300 text-red-800',
+              medium: 'from-yellow-50 to-orange-50 border-yellow-300 text-yellow-800',
+              low: 'from-green-50 to-emerald-50 border-green-300 text-green-800'
+            };
+            
+            return (
+              <div key={idx} className={`bg-gradient-to-r ${priorityColors[rec.priority as keyof typeof priorityColors]} border-2 p-4 rounded-xl shadow-sm`}>
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="font-semibold text-sm">{rec.action}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        rec.priority === 'high' ? 'bg-red-200 text-red-800' :
+                        rec.priority === 'medium' ? 'bg-yellow-200 text-yellow-800' :
+                        'bg-green-200 text-green-800'
+                      }`}>
+                        {rec.priority.toUpperCase()}
+                      </span>
+                      <span className="text-xs bg-white px-2 py-0.5 rounded-full text-gray-600">
+                        {rec.aiConfidence}% confidence
+                      </span>
+                    </div>
+                    <p className="text-xs opacity-90 mb-2">{rec.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs bg-white bg-opacity-70 px-2 py-1 rounded text-gray-600">
+                        {rec.category}
+                      </span>
+                      <Button size="sm" className="h-7 text-xs bg-white text-gray-700 hover:bg-gray-50 shadow-sm">
+                        Take Action
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Quick Overview */}
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-semibold text-gray-900 mb-2">Quick Overview</h4>
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-900 mb-2">Application Status</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div><span className="text-gray-500">Stage:</span> {application.stage}</div>
             <div><span className="text-gray-500">Status:</span> {application.status}</div>
             <div><span className="text-gray-500">SLA:</span> {application.slaHours}h left</div>
             <div><span className="text-gray-500">Progress:</span> {application.progress}/{application.totalSteps}</div>
-          </div>
-        </div>
-
-        {/* AI Recommendations */}
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 p-4 rounded-lg">
-          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <Brain className="w-4 h-4 text-purple-600" />
-            AI Recommendations
-          </h4>
-          <div className="space-y-3">
-            {aiRecommendations.map((rec, idx) => {
-              const Icon = rec.icon;
-              const priorityColors = {
-                high: 'text-red-700 bg-red-100 border-red-300',
-                medium: 'text-yellow-700 bg-yellow-100 border-yellow-300',
-                low: 'text-green-700 bg-green-100 border-green-300'
-              };
-              
-              return (
-                <div key={idx} className={`p-3 rounded border ${priorityColors[rec.priority as keyof typeof priorityColors]}`}>
-                  <div className="flex items-start gap-2">
-                    <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm flex items-center gap-2">
-                        {rec.action}
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                          rec.priority === 'high' ? 'bg-red-200 text-red-800' :
-                          rec.priority === 'medium' ? 'bg-yellow-200 text-yellow-800' :
-                          'bg-green-200 text-green-800'
-                        }`}>
-                          {rec.priority.toUpperCase()}
-                        </span>
-                      </p>
-                      <p className="text-xs mt-1 opacity-90">{rec.description}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
 
