@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowLeft, FileText, Mail, Database, Settings, Brain } from 'lucide-react';
+import { ArrowLeft, FileText, Mail, Database, Settings, Brain, CheckCircle, AlertTriangle, PenTool, CheckSquare, Database as FileCheck, Shield } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from '@/components/ValidationStepCarousel';
@@ -95,39 +94,228 @@ const TicketDetail: React.FC = () => {
           </div>
         );
       case 2:
-        return (
+        // Field Validation - using extracted fields if available
+        return application.extractedFields ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">Field Validation Review</h4>
+              <Button size="sm">Validate All</Button>
+            </div>
+            <div className="space-y-3">
+              {application.extractedFields.map((field, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{field.fieldName}</div>
+                    <div className="text-sm text-gray-600">{field.value}</div>
+                    <div className="text-xs text-gray-400">
+                      Source: {field.sourceDocument} | Confidence: {field.confidence}%
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {field.validated ? (
+                      <div className="text-green-600 text-sm flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        Validated
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">Reject</Button>
+                        <Button size="sm">Approve</Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
           <div className="text-center py-8 text-gray-500">
-            Field Validation View - Coming Soon
+            No fields available for validation
           </div>
         );
       case 3:
+        // SOR Cross-check - using sorData
         return (
-          <div className="text-center py-8 text-gray-500">
-            SOR Cross-check View - Coming Soon
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">System of Record Cross-check</h4>
+              <Button size="sm">Refresh SOR Data</Button>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <h5 className="font-medium mb-3 text-gray-700">Extracted Data</h5>
+                <div className="space-y-2">
+                  {application.extractedFields?.map((field, idx) => (
+                    <div key={idx} className="flex justify-between p-2 bg-blue-50 rounded">
+                      <span className="text-sm font-medium">{field.fieldName}:</span>
+                      <span className="text-sm">{field.value}</span>
+                    </div>
+                  )) || <div className="text-sm text-gray-500">No extracted data</div>}
+                </div>
+              </div>
+              <div>
+                <h5 className="font-medium mb-3 text-gray-700">SOR Data</h5>
+                <div className="space-y-2">
+                  <div className="flex justify-between p-2 bg-green-50 rounded">
+                    <span className="text-sm font-medium">Name:</span>
+                    <span className="text-sm">{application.sorData.name}</span>
+                  </div>
+                  {application.sorData.dob && (
+                    <div className="flex justify-between p-2 bg-green-50 rounded">
+                      <span className="text-sm font-medium">DOB:</span>
+                      <span className="text-sm">{application.sorData.dob}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between p-2 bg-green-50 rounded">
+                    <span className="text-sm font-medium">Account Type:</span>
+                    <span className="text-sm">{application.sorData.accountType}</span>
+                  </div>
+                  {application.sorData.address && (
+                    <div className="flex justify-between p-2 bg-green-50 rounded">
+                      <span className="text-sm font-medium">Address:</span>
+                      <span className="text-sm">{application.sorData.address}</span>
+                    </div>
+                  )}
+                  {application.sorData.income && (
+                    <div className="flex justify-between p-2 bg-green-50 rounded">
+                      <span className="text-sm font-medium">Income:</span>
+                      <span className="text-sm">{application.sorData.income}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            {application.aiSuggestions?.some(s => s.message.includes('mismatch')) && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                  <span className="text-sm font-medium text-yellow-800">Data Mismatch Detected</span>
+                </div>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Some fields don't match between extracted data and SOR. Review required.
+                </p>
+              </div>
+            )}
           </div>
         );
       case 4:
+        // DocuSign Pre-fill
         return (
-          <div className="text-center py-8 text-gray-500">
-            DocuSign Pre-fill View - Coming Soon
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">DocuSign Pre-fill</h4>
+              <Button size="sm">Generate Form</Button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4">
+                <h5 className="font-medium mb-2">Available Data</h5>
+                <div className="space-y-2 text-sm">
+                  <div>✓ Client Name: {application.clientName}</div>
+                  <div>✓ Account Type: {application.accountType}</div>
+                  {application.sorData.address && <div>✓ Address: Available</div>}
+                  {application.sorData.dob && <div>✓ Date of Birth: Available</div>}
+                  {application.sorData.income && <div>✓ Income: Available</div>}
+                </div>
+              </Card>
+              <Card className="p-4">
+                <h5 className="font-medium mb-2">Form Status</h5>
+                <div className="text-center py-4">
+                  <PenTool className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <div className="text-sm text-gray-500">Ready to generate DocuSign form</div>
+                  <Button className="mt-2" size="sm">Create Form</Button>
+                </div>
+              </Card>
+            </div>
           </div>
         );
       case 5:
+        // Good Order Review
         return (
-          <div className="text-center py-8 text-gray-500">
-            Good Order Review View - Coming Soon
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">Good Order Review</h4>
+              <Button size="sm">Mark Complete</Button>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="p-4">
+                <h5 className="font-medium mb-2 flex items-center gap-2">
+                  <FileCheck className="w-4 h-4" />
+                  Documents
+                </h5>
+                <div className="text-sm">
+                  {application.documents.filter(d => d.validated).length}/{application.documents.length} validated
+                </div>
+              </Card>
+              <Card className="p-4">
+                <h5 className="font-medium mb-2 flex items-center gap-2">
+                  <CheckSquare className="w-4 h-4" />
+                  Fields
+                </h5>
+                <div className="text-sm">
+                  {application.extractedFields?.filter(f => f.validated).length || 0}/
+                  {application.extractedFields?.length || 0} validated
+                </div>
+              </Card>
+              <Card className="p-4">
+                <h5 className="font-medium mb-2 flex items-center gap-2">
+                  <Database className="w-4 h-4" />
+                  SOR Check
+                </h5>
+                <div className="text-sm text-green-600">✓ Completed</div>
+              </Card>
+            </div>
           </div>
         );
       case 6:
+        // Workflow Entry
         return (
-          <div className="text-center py-8 text-gray-500">
-            Workflow Entry View - Coming Soon
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">Workflow Entry</h4>
+              <Button size="sm">Enter Workflow</Button>
+            </div>
+            <div className="text-center py-8">
+              <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <div className="text-sm text-gray-600 mb-4">
+                Application ready to enter processing workflow
+              </div>
+              <div className="space-y-2 text-sm">
+                <div>✓ All documents validated</div>
+                <div>✓ Fields extracted and verified</div>
+                <div>✓ SOR cross-check completed</div>
+                <div>✓ Good order review passed</div>
+              </div>
+            </div>
           </div>
         );
       case 7:
+        // Final Approval
         return (
-          <div className="text-center py-8 text-gray-500">
-            Final Approval View - Coming Soon
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold">Final Approval</h4>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline">Reject</Button>
+                <Button size="sm">Approve</Button>
+              </div>
+            </div>
+            <div className="text-center py-8">
+              <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
+              <div className="text-lg font-medium mb-2">Ready for Final Approval</div>
+              <div className="text-sm text-gray-600 mb-6">
+                All validation steps completed successfully
+              </div>
+              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                <div className="text-left space-y-1">
+                  <div className="text-xs text-gray-500">Client:</div>
+                  <div className="text-sm font-medium">{application.clientName}</div>
+                </div>
+                <div className="text-left space-y-1">
+                  <div className="text-xs text-gray-500">Account Type:</div>
+                  <div className="text-sm font-medium">{application.accountType}</div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       default:
