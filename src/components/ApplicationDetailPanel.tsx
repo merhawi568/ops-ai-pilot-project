@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle, Brain, Lightbulb } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from './ValidationStepCarousel';
@@ -72,8 +72,66 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
     return issues;
   };
 
+  const getAIRecommendations = () => {
+    const recommendations = [];
+    
+    // Generate recommendations based on application state
+    if (application.exceptions > 0) {
+      if (application.status.includes('Missing')) {
+        recommendations.push({
+          priority: 'high',
+          action: 'Request Missing Documents',
+          description: 'Send automated email to client requesting missing KYC documents',
+          icon: Mail
+        });
+      }
+      
+      if (application.status.includes('Low confidence')) {
+        recommendations.push({
+          priority: 'medium',
+          action: 'Manual Data Review',
+          description: 'Review AI-extracted fields for accuracy before proceeding',
+          icon: Eye
+        });
+      }
+    }
+    
+    if (application.slaHours <= 6) {
+      recommendations.push({
+        priority: application.slaHours <= 2 ? 'high' : 'medium',
+        action: 'Prioritize Processing',
+        description: `SLA deadline approaching - escalate to next available agent`,
+        icon: Clock
+      });
+    }
+    
+    if (application.stage === 'Document Validation' && application.documents.length > 0) {
+      const unvalidatedDocs = application.documents.filter(doc => !doc.validated).length;
+      if (unvalidatedDocs > 0) {
+        recommendations.push({
+          priority: 'medium',
+          action: 'Complete Document Validation',
+          description: `${unvalidatedDocs} documents pending validation`,
+          icon: FileText
+        });
+      }
+    }
+    
+    if (!recommendations.length) {
+      recommendations.push({
+        priority: 'low',
+        action: 'Continue Standard Processing',
+        description: 'No immediate actions required - proceed with normal workflow',
+        icon: CheckCircle
+      });
+    }
+    
+    return recommendations;
+  };
+
   const renderSummaryView = () => {
     const issues = getIssueDetails();
+    const aiRecommendations = getAIRecommendations();
     
     return (
       <div className="space-y-4">
@@ -85,6 +143,45 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
             <div><span className="text-gray-500">Status:</span> {application.status}</div>
             <div><span className="text-gray-500">SLA:</span> {application.slaHours}h left</div>
             <div><span className="text-gray-500">Progress:</span> {application.progress}/{application.totalSteps}</div>
+          </div>
+        </div>
+
+        {/* AI Recommendations */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Brain className="w-4 h-4 text-purple-600" />
+            AI Recommendations
+          </h4>
+          <div className="space-y-3">
+            {aiRecommendations.map((rec, idx) => {
+              const Icon = rec.icon;
+              const priorityColors = {
+                high: 'text-red-700 bg-red-100 border-red-300',
+                medium: 'text-yellow-700 bg-yellow-100 border-yellow-300',
+                low: 'text-green-700 bg-green-100 border-green-300'
+              };
+              
+              return (
+                <div key={idx} className={`p-3 rounded border ${priorityColors[rec.priority as keyof typeof priorityColors]}`}>
+                  <div className="flex items-start gap-2">
+                    <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm flex items-center gap-2">
+                        {rec.action}
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                          rec.priority === 'high' ? 'bg-red-200 text-red-800' :
+                          rec.priority === 'medium' ? 'bg-yellow-200 text-yellow-800' :
+                          'bg-green-200 text-green-800'
+                        }`}>
+                          {rec.priority.toUpperCase()}
+                        </span>
+                      </p>
+                      <p className="text-xs mt-1 opacity-90">{rec.description}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
