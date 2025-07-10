@@ -164,57 +164,50 @@ const TicketDetail: React.FC = () => {
               </div>
             </div>
           );
-        case 'DocuSign_Form.pdf':
+        case 'Driver_License.pdf':
           return (
-            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
-              <div className="text-center mb-4 font-bold">ACCOUNT OPENING FORM</div>
-              <div className="space-y-3">
-                <div className={`${highlightedField === 'Name' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
-                  <strong>Full Name:</strong> [PRE-FILLED] Elisa Kim
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs relative">
+              <div className="text-center mb-4 font-bold">CALIFORNIA DRIVER LICENSE</div>
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div>
+                  <div className="bg-gray-200 w-24 h-32 mb-2"></div>
+                  <div className="text-xs">Photo</div>
                 </div>
-                <div className={`${highlightedField === 'DOB' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
-                  <strong>Date of Birth:</strong> [PRE-FILLED] 08/14/1984
-                </div>
-                <div className={`${highlightedField === 'Passport Number' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
-                  <strong>ID Number:</strong> [PRE-FILLED] N12345678
-                </div>
-                <div className="mt-6">
-                  <div className={`${highlightedField === 'signature' ? 'bg-green-200 border-2 border-green-400 p-2' : 'border-2 border-dashed border-gray-300 p-2'} h-16`}>
-                    <div className="text-xs text-gray-500 mb-1">Client Signature:</div>
-                    {highlightedField === 'signature' && (
-                      <div className="italic font-script text-lg">Elisa Kim</div>
-                    )}
+                <div className="space-y-1">
+                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                    <strong>Name:</strong> Devlin Patel
                   </div>
-                </div>
-                <div className={`${highlightedField === 'date' ? 'bg-green-200 border-2 border-green-400 p-1' : 'border p-1'}`}>
-                  <strong>Date Signed:</strong> {highlightedField === 'date' ? '01/08/2025' : '[To be filled]'}
+                  <div><strong>Address:</strong> 456 Oak Street</div>
+                  <div><strong>City:</strong> Los Angeles, CA 90210</div>
+                  <div><strong>DOB:</strong> 03/22/1985</div>
+                  <div><strong>License #:</strong> D1234567</div>
+                  <div><strong>Class:</strong> C</div>
+                  <div><strong>Expires:</strong> 03/22/2029</div>
                 </div>
               </div>
             </div>
           );
-        case 'Workflow_Entry.pdf':
+        case 'Utility_Bill.pdf':
           return (
             <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
-              <div className="text-center mb-4 font-bold">WORKFLOW ENTRY FORM</div>
-              <div className="space-y-2">
-                <div className={`${highlightedField === 'Client Name' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
-                  <strong>Client Name:</strong> Elisa Kim
+              <div className="text-center mb-4 font-bold">PACIFIC GAS & ELECTRIC</div>
+              <div className="text-center mb-4">Monthly Statement</div>
+              <div className="space-y-3">
+                <div>
+                  <strong>Service Address:</strong>
+                  <div className={`${highlightedField === 'Address' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                    123 Main St<br/>
+                    Los Angeles, CA 90210
+                  </div>
                 </div>
-                <div className={`${highlightedField === 'Account Type' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
-                  <strong>Account Type:</strong> Individual
+                <div>
+                  <strong>Account Holder:</strong> Devlin Patel
                 </div>
-                <div className={`${highlightedField === 'Entry Date' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
-                  <strong>Workflow Entry Date:</strong> 01/08/2025
+                <div>
+                  <strong>Statement Date:</strong> December 15, 2024
                 </div>
-                <div className={`${highlightedField === 'Status' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
-                  <strong>Status:</strong> Entered - Pending Final Validation
-                </div>
-                <div className="mt-4 p-2 bg-gray-50 rounded">
-                  <strong>Source Documents:</strong>
-                  <ul className="list-disc list-inside text-xs mt-1">
-                    <li>Passport.pdf - Validated ✓</li>
-                    <li>DocuSign_Form.pdf - Completed ✓</li>
-                  </ul>
+                <div>
+                  <strong>Amount Due:</strong> $124.50
                 </div>
               </div>
             </div>
@@ -233,7 +226,7 @@ const TicketDetail: React.FC = () => {
                 </div>
                 <div>
                   <div><strong>RECIPIENT:</strong></div>
-                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                  <div className={`${highlightedField === 'Name' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
                     Rachel Nunez
                   </div>
                   <div>456 Oak Street</div>
@@ -250,7 +243,7 @@ const TicketDetail: React.FC = () => {
                   </div>
                   <div>
                     <div><strong>Tax Year:</strong></div>
-                    <div className={`${highlightedField === 'Tax Year' ? 'bg-yellow-200 border-2 border-yellow-400' : ''}`}>
+                    <div className={`${highlightedField === 'Tax Year' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
                       2023
                     </div>
                   </div>
@@ -279,6 +272,103 @@ const TicketDetail: React.FC = () => {
                   <div>Corporation Service Company</div>
                   <div>2711 Centerville Road, Suite 400</div>
                   <div>Wilmington, DE 19808</div>
+                </div>
+              </div>
+            </div>
+          );
+        case 'EIN_Letter.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">INTERNAL REVENUE SERVICE</div>
+              <div className="text-center mb-4">Employer Identification Number Assignment</div>
+              <div className="space-y-3">
+                <div>
+                  <strong>Entity Name:</strong> Tyrell Systems LLC
+                </div>
+                <div>
+                  <strong>Employer Identification Number:</strong>
+                  <div className={`text-lg font-bold ${highlightedField === 'EIN' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                    12-3456789
+                  </div>
+                </div>
+                <div>
+                  <strong>Date Assigned:</strong> January 15, 2024
+                </div>
+                <div>
+                  <strong>Entity Type:</strong> Limited Liability Company
+                </div>
+              </div>
+            </div>
+          );
+        case 'Resolution.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">CORPORATE RESOLUTION</div>
+              <div className="text-center mb-4">Tyrell Systems LLC</div>
+              <div className="space-y-3">
+                <div>
+                  <strong>RESOLVED:</strong> That the following person is hereby authorized to act as signatory for the company:
+                </div>
+                <div className={`${highlightedField === 'Authorized Signatory' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Authorized Signatory:</strong> John Tyrell
+                </div>
+                <div>
+                  <strong>Title:</strong> Managing Member
+                </div>
+                <div>
+                  <strong>Date of Resolution:</strong> January 20, 2024
+                </div>
+              </div>
+            </div>
+          );
+        case 'DocuSign_Form.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">ACCOUNT OPENING FORM</div>
+              <div className="space-y-3">
+                <div className={`${highlightedField === 'Name' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
+                  <strong>Full Name:</strong> [PRE-FILLED] {ticketId === 'ON-2025-0455' ? 'Elisa Kim' : 'Client Name'}
+                </div>
+                <div className={`${highlightedField === 'DOB' ? 'bg-blue-200 border-2 border-blue-400 p-1' : 'border p-1'}`}>
+                  <strong>Date of Birth:</strong> [PRE-FILLED] {ticketId === 'ON-2025-0455' ? '08/14/1984' : 'DOB'}
+                </div>
+                <div className="mt-6">
+                  <div className={`${highlightedField === 'signature' ? 'bg-green-200 border-2 border-green-400 p-2' : 'border-2 border-dashed border-gray-300 p-2'} h-16`}>
+                    <div className="text-xs text-gray-500 mb-1">Client Signature:</div>
+                    {highlightedField === 'signature' && (
+                      <div className="italic font-script text-lg">{ticketId === 'ON-2025-0455' ? 'Elisa Kim' : 'Client Signature'}</div>
+                    )}
+                  </div>
+                </div>
+                <div className={`${highlightedField === 'date' ? 'bg-green-200 border-2 border-green-400 p-1' : 'border p-1'}`}>
+                  <strong>Date Signed:</strong> {highlightedField === 'date' ? '01/08/2025' : '[To be filled]'}
+                </div>
+              </div>
+            </div>
+          );
+        case 'Workflow_Entry.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">WORKFLOW ENTRY FORM</div>
+              <div className="space-y-2">
+                <div className={`${highlightedField === 'Client Name' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Client Name:</strong> {application?.clientName}
+                </div>
+                <div className={`${highlightedField === 'Account Type' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Account Type:</strong> {application?.accountType}
+                </div>
+                <div className={`${highlightedField === 'Entry Date' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Workflow Entry Date:</strong> 01/08/2025
+                </div>
+                <div className={`${highlightedField === 'Status' ? 'bg-purple-200 border-2 border-purple-400 p-1' : ''}`}>
+                  <strong>Status:</strong> Entered - Pending Final Validation
+                </div>
+                <div className="mt-4 p-2 bg-gray-50 rounded">
+                  <strong>Source Documents:</strong>
+                  <ul className="list-disc list-inside text-xs mt-1">
+                    <li>Primary documents validated ✓</li>
+                    <li>Form completed ✓</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -480,6 +570,50 @@ const TicketDetail: React.FC = () => {
                       </div>
                     </>
                   )}
+                  {ticketId === 'ON-2025-0456' && (
+                    <>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Name:</span>
+                        <span className="text-sm">Devlin Patel</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Address:</span>
+                        <span className="text-sm">123 Main St, City, State</span>
+                      </div>
+                    </>
+                  )}
+                  {ticketId === 'ON-2025-0458' && (
+                    <>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Name:</span>
+                        <span className="text-sm">Rachel Nunez</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
+                        <span className="text-sm font-medium">Income:</span>
+                        <span className="text-sm text-red-700">$175,000</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Tax Year:</span>
+                        <span className="text-sm">2023</span>
+                      </div>
+                    </>
+                  )}
+                  {ticketId === 'ON-2025-0459' && (
+                    <>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Entity Name:</span>
+                        <span className="text-sm">Tyrell Systems LLC</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">EIN:</span>
+                        <span className="text-sm">12-3456789</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                        <span className="text-sm font-medium">Authorized Signatory:</span>
+                        <span className="text-sm">John Tyrell</span>
+                      </div>
+                    </>
+                  )}
                 </Card>
               </div>
               {ticketId === 'ON-2025-0455' && (
@@ -493,9 +627,23 @@ const TicketDetail: React.FC = () => {
                   </p>
                 </div>
               )}
+              {ticketId === 'ON-2025-0458' && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-medium text-red-800">Income Mismatch Detected</span>
+                  </div>
+                  <p className="text-sm text-red-700 mt-1">
+                    Extracted: $182,000 vs SOR: $175,000
+                  </p>
+                </div>
+              )}
             </div>
             <div>
-              {getMockPDFViewer('Passport.pdf', 'DOB')}
+              {ticketId === 'ON-2025-0455' && getMockPDFViewer('Passport.pdf', 'DOB')}
+              {ticketId === 'ON-2025-0456' && getMockPDFViewer('Driver_License.pdf', 'Name')}
+              {ticketId === 'ON-2025-0458' && getMockPDFViewer('1099.pdf', 'Income')}
+              {ticketId === 'ON-2025-0459' && getMockPDFViewer('Articles_of_Incorporation.pdf', 'Entity Name')}
             </div>
           </div>
         );
@@ -655,8 +803,8 @@ const TicketDetail: React.FC = () => {
             case 'ON-2025-0458':
               return {
                 status: 'pending',
-                issues: ['Low confidence income field (68%)'],
-                summary: 'Pending human confirmation of low-confidence extraction'
+                issues: ['Low confidence income field (68%)', 'Income mismatch with SOR'],
+                summary: 'Pending human confirmation of low-confidence extraction and data mismatch'
               };
             case 'ON-2025-0459':
               return {
