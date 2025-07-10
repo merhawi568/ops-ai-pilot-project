@@ -1,10 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, FileText, Mail, Database, ExternalLink } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
+import { ValidationStepCarousel } from './ValidationStepCarousel';
+import { DocumentValidationView } from './DocumentValidationView';
+import { AIExtractionView } from './AIExtractionView';
+import { AISuggestionsPanel } from './AISuggestionsPanel';
 
 interface ApplicationDetailPanelProps {
   application: Application;
@@ -12,6 +16,60 @@ interface ApplicationDetailPanelProps {
 
 export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ application }) => {
   const { setSelectedApplication } = useApplicationStore();
+  const [currentStep, setCurrentStep] = useState(1); // Start on AI Extraction step
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return <DocumentValidationView documents={application.documents} />;
+      case 1:
+        return application.extractedFields ? (
+          <AIExtractionView extractedFields={application.extractedFields} />
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            No extracted fields available
+          </div>
+        );
+      case 2:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Field Validation View - Coming Soon
+          </div>
+        );
+      case 3:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            SOR Cross-check View - Coming Soon
+          </div>
+        );
+      case 4:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            DocuSign Pre-fill View - Coming Soon
+          </div>
+        );
+      case 5:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Good Order Review View - Coming Soon
+          </div>
+        );
+      case 6:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Workflow Entry View - Coming Soon
+          </div>
+        );
+      case 7:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Final Approval View - Coming Soon
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="fixed left-0 top-0 h-full w-96 bg-white shadow-xl border-r z-40 overflow-y-auto">
@@ -23,6 +81,25 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
       </div>
       
       <div className="p-4 space-y-6">
+        {/* Validation Step Carousel */}
+        <ValidationStepCarousel 
+          currentStep={currentStep}
+          onStepChange={setCurrentStep}
+        />
+
+        {/* Step Content */}
+        <div className="min-h-96">
+          {renderStepContent()}
+        </div>
+
+        {/* AI Suggestions Panel */}
+        {application.aiSuggestions && application.aiSuggestions.length > 0 && (
+          <AISuggestionsPanel 
+            suggestions={application.aiSuggestions}
+            clientName={application.clientName}
+          />
+        )}
+
         {/* Ticket Info */}
         <div>
           <h4 className="font-semibold text-gray-900 mb-2">Ticket Details</h4>
