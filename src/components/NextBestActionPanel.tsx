@@ -56,8 +56,11 @@ export const NextBestActionPanel: React.FC = () => {
     return 'Continue workflow';
   };
 
+  // More selective high priority logic - only truly urgent cases
   const isHighPriority = (app: any) => {
-    return app.slaHours <= 6 || app.exceptions > 0 || app.accountType === 'Trust';
+    return (app.slaHours <= 2) || 
+           (app.accountType === 'Trust' && app.exceptions > 0) || 
+           (app.status.includes('Escalated'));
   };
 
   return (

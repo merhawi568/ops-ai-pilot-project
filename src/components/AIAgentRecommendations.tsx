@@ -3,16 +3,69 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Bot, CheckCircle, Zap, FileText, Clock, AlertTriangle, TrendingUp, Activity, Eye, Mail } from 'lucide-react';
+import { Sparkles, CheckCircle, Zap, FileText, Clock, AlertTriangle, TrendingUp, Activity, Mail, Users, MessageSquare } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 
 export const AIAgentRecommendations: React.FC = () => {
   const { applications } = useApplicationStore();
 
-  // Generate AI achievements and recommendations
+  // Generate AI achievements and recommendations based on actual ticket data
   const getAIAchievements = () => {
     const achievements = [];
     
+    // Ready for approval tickets
+    const readyForApproval = applications.filter(app => 
+      app.stage.includes('Approval') || app.status.includes('Pending Approval')
+    );
+    
+    if (readyForApproval.length > 0) {
+      achievements.push({
+        icon: CheckCircle,
+        title: 'Tickets Ready for Final Approval',
+        description: `${readyForApproval.length} client onboarding applications have been fully processed and validated. All required documents verified and compliance checks completed.`,
+        primaryAction: 'Review & Approve',
+        secondaryAction: 'View Details',
+        color: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
+        iconColor: 'text-green-600',
+        stats: `${readyForApproval.length} ready`
+      });
+    }
+
+    // Missing documents with draft emails
+    const missingDocs = applications.filter(app => 
+      app.status.includes('Missing') || app.status.includes('missing')
+    );
+    
+    if (missingDocs.length > 0) {
+      achievements.push({
+        icon: Mail,
+        title: 'Missing Document Follow-ups',
+        description: `${missingDocs.length} clients have missing required documents. AI has drafted personalized follow-up emails requesting specific missing items and is ready to send.`,
+        primaryAction: 'Send Emails',
+        secondaryAction: 'Review Drafts',
+        color: 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200',
+        iconColor: 'text-blue-600',
+        stats: `${missingDocs.length} drafts ready`
+      });
+    }
+
+    // Exception handling
+    const exceptionsCount = applications.reduce((sum, app) => sum + app.exceptions, 0);
+    const escalatedTickets = applications.filter(app => app.status.includes('Escalated'));
+    
+    if (exceptionsCount > 0) {
+      achievements.push({
+        icon: AlertTriangle,
+        title: 'Exception Resolution in Progress',
+        description: `${exceptionsCount} data validation exceptions detected across ${escalatedTickets.length} tickets. AI has categorized issues and provided resolution recommendations for manual review.`,
+        primaryAction: 'Review Exceptions',
+        secondaryAction: 'Auto-Resolve',
+        color: 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200',
+        iconColor: 'text-amber-600',
+        stats: `${exceptionsCount} flagged`
+      });
+    }
+
     // Document processing achievement
     const totalDocs = applications.reduce((sum, app) => sum + app.documents.length, 0);
     const validatedDocs = applications.reduce((sum, app) => 
@@ -20,45 +73,14 @@ export const AIAgentRecommendations: React.FC = () => {
     
     achievements.push({
       icon: FileText,
-      title: 'Document Processing Optimized',
-      description: `${validatedDocs} of ${totalDocs} documents auto-validated with 94% accuracy. Saved 12 hours of manual review time.`,
-      primaryAction: 'View Processing',
-      secondaryAction: 'Analytics',
-      color: 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200',
-      iconColor: 'text-blue-600',
-      stats: `${Math.round((validatedDocs/totalDocs) * 100)}% automated`
+      title: 'AI Document Processing Complete',
+      description: `${validatedDocs} documents successfully extracted and validated across all active tickets. Average confidence score of 91% with automated field mapping completed.`,
+      primaryAction: 'View Extractions',
+      secondaryAction: 'Export Data',
+      color: 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200',
+      iconColor: 'text-purple-600',
+      stats: `${Math.round((validatedDocs/totalDocs) * 100)}% processed`
     });
-
-    // SLA management achievement
-    const urgentApps = applications.filter(app => app.slaHours <= 6).length;
-    const totalApps = applications.length;
-    
-    achievements.push({
-      icon: Clock,
-      title: 'SLA Compliance Enhanced',
-      description: `${urgentApps} urgent applications identified and prioritized. Average processing time reduced by 35%.`,
-      primaryAction: 'View Queue',
-      secondaryAction: 'Optimize',
-      color: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
-      iconColor: 'text-green-600',
-      stats: `${Math.round(((totalApps - urgentApps)/totalApps) * 100)}% on track`
-    });
-
-    // Exception handling achievement
-    const exceptionsCount = applications.reduce((sum, app) => sum + app.exceptions, 0);
-    
-    if (exceptionsCount > 0) {
-      achievements.push({
-        icon: AlertTriangle,
-        title: 'Exception Auto-Resolution',
-        description: `${exceptionsCount} exceptions detected and categorized. Pre-generated solutions available for 78% of cases.`,
-        primaryAction: 'Review Cases',
-        secondaryAction: 'Auto-Resolve',
-        color: 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200',
-        iconColor: 'text-amber-600',
-        stats: '78% auto-resolvable'
-      });
-    }
 
     return achievements;
   };
@@ -68,12 +90,14 @@ export const AIAgentRecommendations: React.FC = () => {
   const handleActionClick = (action: string) => {
     console.log('AI Achievement action:', action);
     // Navigate based on action type
-    if (action.includes('Processing') || action.includes('Analytics')) {
-      window.open('/analytics/documents', '_blank');
-    } else if (action.includes('Queue') || action.includes('Optimize')) {
-      window.open('/queue/priority', '_blank');
-    } else if (action.includes('Cases') || action.includes('Auto-Resolve')) {
+    if (action.includes('Review & Approve') || action.includes('View Details')) {
+      window.open('/approval/queue', '_blank');
+    } else if (action.includes('Send Emails') || action.includes('Review Drafts')) {
+      window.open('/communications/drafts', '_blank');
+    } else if (action.includes('Review Exceptions') || action.includes('Auto-Resolve')) {
       window.open('/exceptions/management', '_blank');
+    } else if (action.includes('View Extractions') || action.includes('Export Data')) {
+      window.open('/analytics/documents', '_blank');
     }
   };
 
@@ -90,10 +114,6 @@ export const AIAgentRecommendations: React.FC = () => {
             Intelligent automation and optimization insights
           </p>
         </div>
-        <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-          <Bot className="w-3 h-3 mr-1" />
-          AI Powered
-        </Badge>
       </div>
 
       {/* AI Achievements */}
