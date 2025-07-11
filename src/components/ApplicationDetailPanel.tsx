@@ -98,8 +98,18 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
   const getAIRecommendations = () => {
     const recommendations = [];
     
-    // Generate recommendations based on application state
-    if (application.exceptions > 0) {
+    // Generate recommendations based on application state and specific ticket conditions
+    if (application.id === 'APP-002') {
+      // Specific recommendation for ticket #2 - data mismatch requiring senior review
+      recommendations.push({
+        priority: 'high',
+        action: 'Escalate for Senior Review',
+        description: 'Data mismatch detected between passport and application form - requires senior analyst validation',
+        icon: AlertTriangle,
+        aiConfidence: 85,
+        category: 'Quality Assurance'
+      });
+    } else if (application.exceptions > 0) {
       if (application.status.includes('Missing')) {
         recommendations.push({
           priority: 'high',
