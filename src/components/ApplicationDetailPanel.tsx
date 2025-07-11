@@ -137,17 +137,6 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
       }
     }
     
-    if (!recommendations.length) {
-      recommendations.push({
-        priority: 'low',
-        action: 'Continue Standard Processing',
-        description: 'No immediate actions required - proceed with normal workflow',
-        icon: CheckCircle,
-        aiConfidence: 95,
-        category: 'Standard Processing'
-      });
-    }
-    
     return recommendations;
   };
 
