@@ -19,10 +19,18 @@ export const AIAgentRecommendations: React.FC = () => {
     );
     
     if (readyForApproval.length > 0) {
+      const issuesDetected = readyForApproval.map(app => {
+        if (app.id === 'ON-2025-0450') {
+          return 'Trust document structure validation completed';
+        }
+        return 'Standard compliance checks passed';
+      });
+
       achievements.push({
         icon: CheckCircle,
         title: 'Tickets Ready for Final Approval',
         description: `${readyForApproval.length} client onboarding applications have been fully processed and validated. All required documents verified and compliance checks completed.`,
+        issuesDetected: issuesDetected,
         primaryAction: 'Review & Approve',
         secondaryAction: 'View Details',
         color: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
@@ -39,10 +47,24 @@ export const AIAgentRecommendations: React.FC = () => {
     );
     
     if (missingDocs.length > 0) {
+      const issuesDetected = missingDocs.map(app => {
+        if (app.status.includes('Missing beneficiary')) {
+          return 'Missing beneficiary documentation detected';
+        }
+        if (app.status.includes('Missing tax')) {
+          return 'Tax form submission incomplete';
+        }
+        if (app.status.includes('Missing identity')) {
+          return 'Identity verification documents required';
+        }
+        return 'Required document submission pending';
+      });
+
       achievements.push({
         icon: Mail,
         title: 'Missing Document Follow-ups',
         description: `${missingDocs.length} clients have missing required documents. AI has drafted personalized follow-up emails requesting specific missing items and is ready to send.`,
+        issuesDetected: issuesDetected,
         primaryAction: 'Send Emails',
         secondaryAction: 'Review Drafts',
         color: 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200',
@@ -58,10 +80,24 @@ export const AIAgentRecommendations: React.FC = () => {
     const escalatedTickets = applications.filter(app => app.status.includes('Escalated') || app.exceptions > 0);
     
     if (exceptionsCount > 0) {
+      const issuesDetected = escalatedTickets.map(app => {
+        if (app.status.includes('Low confidence')) {
+          return 'Low confidence AI extraction requires validation';
+        }
+        if (app.status.includes('Data mismatch')) {
+          return 'Document data inconsistency detected';
+        }
+        if (app.status.includes('Escalated')) {
+          return 'Complex case requiring senior review';
+        }
+        return 'Data validation exception flagged';
+      });
+
       achievements.push({
         icon: AlertTriangle,
         title: 'Exception Resolution in Progress',
         description: `${exceptionsCount} data validation exceptions detected across ${escalatedTickets.length} tickets. AI has categorized issues and provided resolution recommendations for manual review.`,
+        issuesDetected: issuesDetected,
         primaryAction: 'Review Exceptions',
         secondaryAction: 'Auto-Resolve',
         color: 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200',
@@ -81,10 +117,21 @@ export const AIAgentRecommendations: React.FC = () => {
       app.documents.some(doc => !doc.validated)
     );
     
+    const processingIssues = applications.map(app => {
+      if (app.id === 'ON-2025-0450') {
+        return 'Trust agreement field extraction at 91% confidence';
+      }
+      if (app.documents.some(doc => !doc.validated)) {
+        return 'Document validation pending review';
+      }
+      return 'Automated processing completed successfully';
+    }).filter((issue, index, self) => self.indexOf(issue) === index);
+    
     achievements.push({
       icon: FileText,
       title: 'AI Document Processing Complete',
       description: `${validatedDocs} documents successfully extracted and validated across all active tickets. Average confidence score of 91% with automated field mapping completed.`,
+      issuesDetected: processingIssues,
       primaryAction: 'View Extractions',
       secondaryAction: 'Export Data',
       color: 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200',
@@ -170,6 +217,29 @@ export const AIAgentRecommendations: React.FC = () => {
                 <p className="text-sm text-gray-700 mb-3 leading-relaxed">
                   {achievement.description}
                 </p>
+
+                {/* Issues Detected Section */}
+                {achievement.issuesDetected && achievement.issuesDetected.length > 0 && (
+                  <div className="mb-3 p-3 bg-white/50 rounded-lg border border-gray-100">
+                    <h4 className="text-xs font-medium text-gray-600 mb-2 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Issues Detected by AI:
+                    </h4>
+                    <ul className="space-y-1">
+                      {achievement.issuesDetected.slice(0, 3).map((issue, issueIndex) => (
+                        <li key={issueIndex} className="text-xs text-gray-700 flex items-start gap-2">
+                          <span className="text-amber-500 text-[10px] mt-0.5">●</span>
+                          <span className="flex-1">{issue}</span>
+                        </li>
+                      ))}
+                      {achievement.issuesDetected.length > 3 && (
+                        <li className="text-xs text-gray-500 italic">
+                          +{achievement.issuesDetected.length - 3} more issues detected
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
                 
                 <div className="flex items-center gap-2 flex-wrap">
                   <Button 
