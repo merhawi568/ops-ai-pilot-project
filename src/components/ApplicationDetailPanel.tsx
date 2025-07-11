@@ -109,6 +109,16 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
         aiConfidence: 85,
         category: 'Quality Assurance'
       });
+    } else if (application.id === 'APP-003') {
+      // Specific recommendation for final ticket - AI validation complete, ready for approval
+      recommendations.push({
+        priority: 'medium',
+        action: 'Proceed to Final Approval',
+        description: 'AI has completed all validation checks successfully - application ready for final approval',
+        icon: CheckCircle,
+        aiConfidence: 96,
+        category: 'Final Processing'
+      });
     } else if (application.exceptions > 0) {
       if (application.status.includes('Missing')) {
         recommendations.push({
