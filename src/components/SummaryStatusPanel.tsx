@@ -4,14 +4,13 @@ import { Card } from '@/components/ui/card';
 import { useApplicationStore } from '@/store/useApplicationStore';
 
 export const SummaryStatusPanel: React.FC = () => {
-  const { applications, setFilter } = useApplicationStore();
+  const { applications, systemMetrics, setFilter } = useApplicationStore();
   
   const stats = [
-    { label: 'Tickets Assigned', value: applications.length, filter: 'All' },
-    { label: 'Pending Final Approval', value: applications.filter(app => app.status.includes('Approval')).length, filter: 'Final Review' },
-    { label: 'Missing Passport', value: applications.filter(app => app.status.includes('passport')).length, filter: 'With Exceptions' },
-    { label: 'Waiting Customer Signature', value: applications.filter(app => app.status.includes('signature')).length, filter: 'Waiting Signature' },
-    { label: 'Exceptions Raised', value: applications.filter(app => app.exceptions > 0).length, filter: 'With Exceptions' }
+    { label: 'Applications Completed', value: systemMetrics.applicationsCompleted, filter: 'All' },
+    { label: 'Avg Processing Time', value: systemMetrics.avgProcessingTime, filter: 'All' },
+    { label: 'Manual Interventions', value: `${systemMetrics.manualInterventions}%`, filter: 'With Exceptions' },
+    { label: 'Exceptions Auto-Resolved', value: systemMetrics.exceptionsAutoResolved, filter: 'With Exceptions' }
   ];
 
   return (
