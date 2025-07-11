@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -122,17 +121,6 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
           category: 'Quality Assurance'
         });
       }
-    }
-    
-    if (application.slaHours <= 6) {
-      recommendations.push({
-        priority: application.slaHours <= 2 ? 'high' : 'medium',
-        action: 'Priority Processing',
-        description: `SLA deadline in ${application.slaHours}h - escalate to available agent`,
-        icon: Clock,
-        aiConfidence: 96,
-        category: 'SLA Management'
-      });
     }
     
     if (application.stage === 'Document Validation' && application.documents.length > 0) {
