@@ -71,17 +71,6 @@ const TicketDetail: React.FC = () => {
       }
     }
     
-    if (application && application.slaHours <= 6) {
-      recommendations.push(`SLA deadline approaching (${application.slaHours}h left) - escalate to next available agent`);
-    }
-    
-    if (application && application.stage === 'Document Validation' && application.documents.length > 0) {
-      const unvalidatedDocs = application.documents.filter(doc => !doc.validated).length;
-      if (unvalidatedDocs > 0) {
-        recommendations.push(`${unvalidatedDocs} documents pending validation - complete document review`);
-      }
-    }
-    
     if (!recommendations.length) {
       recommendations.push('No immediate actions required - proceed with normal workflow');
     }
@@ -98,6 +87,12 @@ const TicketDetail: React.FC = () => {
 
   const getExtractionDataForTicket = () => {
     console.log('Getting extraction data for ticket:', ticketId);
+    
+    // Use the application's extractedFields if available, otherwise fall back to hardcoded data
+    if (application?.extractedFields && application.extractedFields.length > 0) {
+      console.log('Using application extractedFields:', application.extractedFields);
+      return application.extractedFields;
+    }
     
     switch (ticketId) {
       case 'ON-2025-0455':
@@ -126,8 +121,8 @@ const TicketDetail: React.FC = () => {
           { fieldName: 'Authorized Signatory', value: 'John Tyrell', sourceDocument: 'Resolution.pdf', confidence: 93, validated: false }
         ];
       default:
-        console.log('No specific data for ticket, using application extractedFields');
-        return application?.extractedFields || [];
+        console.log('No specific data for ticket, returning empty array');
+        return [];
     }
   };
 
@@ -171,6 +166,135 @@ const TicketDetail: React.FC = () => {
     
     const getPDFContent = () => {
       switch (documentName) {
+        case 'Trust_Agreement.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs relative">
+              <div className="text-center mb-4 font-bold">YAN LUO LIVING TRUST AGREEMENT</div>
+              <div className="text-center mb-2">Revocable Trust Document</div>
+              <div className="space-y-3 mt-6">
+                <div className={`${highlightedField === 'Client Core Information' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Trust Name:</strong> Yan Luo Living Trust
+                </div>
+                <div className={`${highlightedField === 'Client Addresses' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Trust Address:</strong> 123 Trust Avenue, San Francisco, CA 94102
+                </div>
+                <div className={`${highlightedField === 'Products' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Account Type:</strong> Revocable Trust Account
+                </div>
+                <div>
+                  <strong>Trustee:</strong> Yan Luo
+                </div>
+                <div>
+                  <strong>Date Established:</strong> March 15, 2024
+                </div>
+                <div className={`${highlightedField === 'Authorized Contact' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Authorized Contacts:</strong>
+                  <div className="ml-4">
+                    - Yan Luo (Primary Trustee)
+                    <br />
+                    - Sarah Chen (Secondary Contact)
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        case 'Tax_ID_Form.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">IRS FORM SS-4</div>
+              <div className="text-center mb-4">Application for Employer Identification Number</div>
+              <div className="space-y-3">
+                <div>
+                  <strong>Legal Name:</strong> Yan Luo Living Trust
+                </div>
+                <div className={`${highlightedField === 'Tax Info' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>EIN:</strong> 04-5558529
+                </div>
+                <div className={`${highlightedField === 'Tax Info' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>UCN:</strong> 0299372527
+                </div>
+                <div>
+                  <strong>Type of Entity:</strong> Trust
+                </div>
+                <div>
+                  <strong>Date Applied:</strong> March 20, 2024
+                </div>
+              </div>
+            </div>
+          );
+        case 'Suitability_Form.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">INVESTMENT SUITABILITY ASSESSMENT</div>
+              <div className="space-y-3">
+                <div className={`${highlightedField === 'Investment Suitability' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Risk Profile:</strong> Conservative Risk Profile
+                </div>
+                <div className={`${highlightedField === 'Investment Experience' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Investment Experience:</strong> 10+ years institutional investing
+                </div>
+                <div className={`${highlightedField === 'Account Level Suitability' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Client Classification:</strong> High Net Worth Individual
+                </div>
+                <div>
+                  <strong>Investment Objectives:</strong> Capital Preservation, Income Generation
+                </div>
+                <div>
+                  <strong>Time Horizon:</strong> Long-term (10+ years)
+                </div>
+              </div>
+            </div>
+          );
+        case 'Personal_Info_Form.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">PERSONAL INFORMATION FORM</div>
+              <div className="space-y-3">
+                <div>
+                  <strong>Trustee Name:</strong> Yan Luo
+                </div>
+                <div className={`${highlightedField === 'Marital Information & Dependents' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Marital Status:</strong> Single
+                </div>
+                <div className={`${highlightedField === 'Marital Information & Dependents' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Dependents:</strong> No Dependents
+                </div>
+                <div>
+                  <strong>Occupation:</strong> Business Executive
+                </div>
+                <div>
+                  <strong>Date of Birth:</strong> January 15, 1970
+                </div>
+              </div>
+            </div>
+          );
+        case 'Authorization_Form.pdf':
+          return (
+            <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs">
+              <div className="text-center mb-4 font-bold">AUTHORIZED CONTACT DESIGNATION</div>
+              <div className="space-y-3">
+                <div className={`${highlightedField === 'Authorized Contact' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Primary Contact:</strong> Yan Luo
+                  <div className="ml-4 text-xs">
+                    Title: Primary Trustee<br />
+                    Phone: (415) 555-0123<br />
+                    Email: yan.luo@email.com
+                  </div>
+                </div>
+                <div className={`${highlightedField === 'Authorized Contact' ? 'bg-yellow-200 border-2 border-yellow-400 p-1' : ''}`}>
+                  <strong>Secondary Contact:</strong> Sarah Chen
+                  <div className="ml-4 text-xs">
+                    Title: Financial Advisor<br />
+                    Phone: (415) 555-0124<br />
+                    Email: sarah.chen@advisor.com
+                  </div>
+                </div>
+                <div>
+                  <strong>Authorization Level:</strong> Full Account Access
+                </div>
+              </div>
+            </div>
+          );
         case 'Passport.pdf':
           return (
             <div className="bg-white border-2 border-gray-300 h-full p-4 text-xs relative">
@@ -694,6 +818,26 @@ const TicketDetail: React.FC = () => {
                         </div>
                       </>
                     )}
+                    {ticketId === 'ON-2025-0450' && (
+                      <>  
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Name:</span>
+                          <span className="text-sm">Global Health Trust</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Account Type:</span>
+                          <span className="text-sm">Trust</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Entity Name:</span>
+                          <span className="text-sm">Global Health Trust</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-green-50 rounded mb-2">
+                          <span className="text-sm font-medium">Compliance ID:</span>
+                          <span className="text-sm">GHT-4502</span>
+                        </div>
+                      </>
+                    )}
                   </Card>
                 </div>
                 <div className="flex items-center gap-2">
@@ -733,6 +877,7 @@ const TicketDetail: React.FC = () => {
                 {ticketId === 'ON-2025-0456' && getMockPDFViewer('Driver_License.pdf', 'Name')}
                 {ticketId === 'ON-2025-0458' && getMockPDFViewer('1099.pdf', 'Income')}
                 {ticketId === 'ON-2025-0459' && getMockPDFViewer('Articles_of_Incorporation.pdf', 'Entity Name')}
+                {ticketId === 'ON-2025-0450' && getMockPDFViewer('Trust_Agreement.pdf', 'Client Core Information')}
               </div>
             </div>
           </div>

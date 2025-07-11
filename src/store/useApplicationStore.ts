@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { Application, SystemMetrics } from '../types';
 
@@ -38,7 +37,18 @@ const mockApplications: Application[] = [
       accountType: 'Trust',
       entityName: 'Global Health Trust',
       complianceId: 'GHT-4502'
-    }
+    },
+    extractedFields: [
+      { fieldName: 'Client Core Information', value: 'Yan Luo Living Trust', sourceDocument: 'Trust_Agreement.pdf', confidence: 99, validated: false },
+      { fieldName: 'Client Addresses', value: '123 Trust Avenue, San Francisco, CA 94102', sourceDocument: 'Trust_Agreement.pdf', confidence: 97, validated: false },
+      { fieldName: 'Tax Info', value: 'EIN: 04-5558529, UCN: 0299372527', sourceDocument: 'Tax_ID_Form.pdf', confidence: 98, validated: false },
+      { fieldName: 'Products', value: 'Revocable Trust Account', sourceDocument: 'Trust_Agreement.pdf', confidence: 98, validated: false },
+      { fieldName: 'Investment Suitability', value: 'Conservative Risk Profile', sourceDocument: 'Suitability_Form.pdf', confidence: 93, validated: false },
+      { fieldName: 'Investment Experience', value: '10+ years institutional investing', sourceDocument: 'Suitability_Form.pdf', confidence: 94, validated: false },
+      { fieldName: 'Marital Information & Dependents', value: 'Single, No Dependents', sourceDocument: 'Personal_Info_Form.pdf', confidence: 96, validated: false },
+      { fieldName: 'Account Level Suitability', value: 'High Net Worth Individual', sourceDocument: 'Suitability_Form.pdf', confidence: 98, validated: false },
+      { fieldName: 'Authorized Contact', value: 'Yan Luo (Primary), Sarah Chen (Secondary)', sourceDocument: 'Authorization_Form.pdf', confidence: 98, validated: false }
+    ]
   },
   {
     id: 'ON-2025-0455',
