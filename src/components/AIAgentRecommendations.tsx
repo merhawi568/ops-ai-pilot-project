@@ -193,32 +193,6 @@ export const AIAgentRecommendations: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {/* AI Activity Summary */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center gap-2 mb-3">
-          <Activity className="w-4 h-4 text-gray-600" />
-          <span className="font-medium text-gray-900">Recent AI Activity</span>
-        </div>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-xl font-bold text-blue-600">{applications.length}</div>
-            <div className="text-xs text-gray-600">Applications Processed</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-green-600">
-              {applications.reduce((sum, app) => sum + app.documents.filter(doc => doc.validated).length, 0)}
-            </div>
-            <div className="text-xs text-gray-600">Documents Validated</div>
-          </div>
-          <div>
-            <div className="text-xl font-bold text-purple-600">
-              {applications.reduce((sum, app) => sum + app.exceptions, 0)}
-            </div>
-            <div className="text-xs text-gray-600">Exceptions Flagged</div>
-          </div>
-        </div>
-      </div>
     </Card>
   );
 };
