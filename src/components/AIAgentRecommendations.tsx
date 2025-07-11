@@ -78,7 +78,7 @@ export const AIAgentRecommendations: React.FC = () => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 h-fit">
       {/* AI Agent Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-purple-100 rounded-lg">
@@ -97,31 +97,31 @@ export const AIAgentRecommendations: React.FC = () => {
       </div>
 
       {/* AI Achievements */}
-      <div className="grid gap-4">
+      <div className="space-y-4">
         {aiAchievements.map((achievement, index) => (
-          <div key={index} className={`p-5 rounded-xl border ${achievement.color} transition-all hover:shadow-lg`}>
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white rounded-lg shadow-sm">
-                <achievement.icon className={`w-6 h-6 ${achievement.iconColor}`} />
+          <div key={index} className={`p-4 rounded-xl border ${achievement.color} transition-all hover:shadow-lg`}>
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-white rounded-lg shadow-sm flex-shrink-0">
+                <achievement.icon className={`w-5 h-5 ${achievement.iconColor}`} />
               </div>
               
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
-                  <Badge variant="outline" className="text-xs bg-white">
+                  <h3 className="font-semibold text-gray-900 text-sm">{achievement.title}</h3>
+                  <Badge variant="outline" className="text-xs bg-white ml-2 flex-shrink-0">
                     <TrendingUp className="w-3 h-3 mr-1" />
                     {achievement.stats}
                   </Badge>
                 </div>
                 
-                <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                <p className="text-sm text-gray-700 mb-3 leading-relaxed">
                   {achievement.description}
                 </p>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Button 
                     size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-7"
                     onClick={() => handleActionClick(achievement.primaryAction)}
                   >
                     {achievement.primaryAction}
@@ -129,6 +129,7 @@ export const AIAgentRecommendations: React.FC = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
+                    className="text-xs px-3 py-1 h-7"
                     onClick={() => handleActionClick(achievement.secondaryAction)}
                   >
                     {achievement.secondaryAction}
@@ -148,17 +149,17 @@ export const AIAgentRecommendations: React.FC = () => {
         </div>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-2xl font-bold text-blue-600">{applications.length}</div>
+            <div className="text-xl font-bold text-blue-600">{applications.length}</div>
             <div className="text-xs text-gray-600">Applications Processed</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-xl font-bold text-green-600">
               {applications.reduce((sum, app) => sum + app.documents.filter(doc => doc.validated).length, 0)}
             </div>
             <div className="text-xs text-gray-600">Documents Validated</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-xl font-bold text-purple-600">
               {applications.reduce((sum, app) => sum + app.exceptions, 0)}
             </div>
             <div className="text-xs text-gray-600">Exceptions Flagged</div>
