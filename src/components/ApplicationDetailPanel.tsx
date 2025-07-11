@@ -365,6 +365,7 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
           onClose={() => setIsEmailModalOpen(false)}
           clientName={application.clientName}
           suggestion={{
+            id: 'email-suggestion-1',
             type: 'action',
             message: emailAction.includes('Document') ? 'Missing passport document required' : 'Follow-up required',
             confidence: 92

@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { SummaryStatusPanel } from '@/components/SummaryStatusPanel';
-import { MyWorkPanel } from '@/components/MyWorkPanel';
 import { NextBestActionPanel } from '@/components/NextBestActionPanel';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { VoiceChatAssistant } from '@/components/VoiceChatAssistant';
 import { SystemInsightsModal } from '@/components/SystemInsightsModal';
+import { AIAgentRecommendations } from '@/components/AIAgentRecommendations';
 import { useApplicationStore } from '@/store/useApplicationStore';
 
 const Index = () => {
@@ -44,13 +44,13 @@ const Index = () => {
         <SummaryStatusPanel />
         
         <div className="grid grid-cols-12 gap-6 mb-6">
-          {/* My Work Panel */}
-          <div className="col-span-3">
-            <MyWorkPanel />
+          {/* AI Agent Recommendations - Left Side */}
+          <div className="col-span-4">
+            <AIAgentRecommendations />
           </div>
           
-          {/* Next Best Action */}
-          <div className="col-span-9">
+          {/* Next Best Action - Right Side */}
+          <div className="col-span-8">
             <NextBestActionPanel />
           </div>
         </div>
