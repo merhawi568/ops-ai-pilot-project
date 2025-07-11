@@ -27,7 +27,9 @@ export const AIAgentRecommendations: React.FC = () => {
         secondaryAction: 'View Details',
         color: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
         iconColor: 'text-green-600',
-        stats: `${readyForApproval.length} ready`
+        stats: `${readyForApproval.length} ready`,
+        tickets: readyForApproval,
+        stage: 'approval'
       });
     }
 
@@ -45,13 +47,15 @@ export const AIAgentRecommendations: React.FC = () => {
         secondaryAction: 'Review Drafts',
         color: 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200',
         iconColor: 'text-blue-600',
-        stats: `${missingDocs.length} drafts ready`
+        stats: `${missingDocs.length} drafts ready`,
+        tickets: missingDocs,
+        stage: 'communications'
       });
     }
 
     // Exception handling
     const exceptionsCount = applications.reduce((sum, app) => sum + app.exceptions, 0);
-    const escalatedTickets = applications.filter(app => app.status.includes('Escalated'));
+    const escalatedTickets = applications.filter(app => app.status.includes('Escalated') || app.exceptions > 0);
     
     if (exceptionsCount > 0) {
       achievements.push({
@@ -62,7 +66,9 @@ export const AIAgentRecommendations: React.FC = () => {
         secondaryAction: 'Auto-Resolve',
         color: 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200',
         iconColor: 'text-amber-600',
-        stats: `${exceptionsCount} flagged`
+        stats: `${exceptionsCount} flagged`,
+        tickets: escalatedTickets,
+        stage: 'exceptions'
       });
     }
 
@@ -70,6 +76,10 @@ export const AIAgentRecommendations: React.FC = () => {
     const totalDocs = applications.reduce((sum, app) => sum + app.documents.length, 0);
     const validatedDocs = applications.reduce((sum, app) => 
       sum + app.documents.filter(doc => doc.validated).length, 0);
+    
+    const docsToValidate = applications.filter(app => 
+      app.documents.some(doc => !doc.validated)
+    );
     
     achievements.push({
       icon: FileText,
@@ -79,7 +89,9 @@ export const AIAgentRecommendations: React.FC = () => {
       secondaryAction: 'Export Data',
       color: 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200',
       iconColor: 'text-purple-600',
-      stats: `${Math.round((validatedDocs/totalDocs) * 100)}% processed`
+      stats: `${Math.round((validatedDocs/totalDocs) * 100)}% processed`,
+      tickets: docsToValidate,
+      stage: 'documents'
     });
 
     return achievements;
@@ -87,17 +99,38 @@ export const AIAgentRecommendations: React.FC = () => {
 
   const aiAchievements = getAIAchievements();
 
-  const handleActionClick = (action: string) => {
-    console.log('AI Achievement action:', action);
-    // Navigate based on action type
-    if (action.includes('Review & Approve') || action.includes('View Details')) {
-      window.open('/approval/queue', '_blank');
-    } else if (action.includes('Send Emails') || action.includes('Review Drafts')) {
-      window.open('/communications/drafts', '_blank');
-    } else if (action.includes('Review Exceptions') || action.includes('Auto-Resolve')) {
-      window.open('/exceptions/management', '_blank');
-    } else if (action.includes('View Extractions') || action.includes('Export Data')) {
-      window.open('/analytics/documents', '_blank');
+  const handleActionClick = (action: string, achievement: any, isPrimary: boolean = true) => {
+    console.log('AI Achievement action:', action, 'Achievement:', achievement);
+    
+    // If we have specific tickets, navigate to the first one or handle multiple
+    if (achievement.tickets && achievement.tickets.length > 0) {
+      const firstTicket = achievement.tickets[0];
+      
+      if (achievement.tickets.length === 1) {
+        // Single ticket - navigate directly to the specific stage
+        const stageParam = achievement.stage ? `#${achievement.stage}` : '';
+        window.open(`/ticket/${firstTicket.id}${stageParam}`, '_blank');
+      } else {
+        // Multiple tickets - for primary action, open first ticket with stage; for secondary, show list
+        if (isPrimary) {
+          const stageParam = achievement.stage ? `#${achievement.stage}` : '';
+          window.open(`/ticket/${firstTicket.id}${stageParam}`, '_blank');
+        } else {
+          // Could implement a modal or list view, for now open first ticket
+          window.open(`/ticket/${firstTicket.id}`, '_blank');
+        }
+      }
+    } else {
+      // Fallback to generic navigation based on action type
+      if (action.includes('Review & Approve') || action.includes('View Details')) {
+        window.open('/approval/queue', '_blank');
+      } else if (action.includes('Send Emails') || action.includes('Review Drafts')) {
+        window.open('/communications/drafts', '_blank');
+      } else if (action.includes('Review Exceptions') || action.includes('Auto-Resolve')) {
+        window.open('/exceptions/management', '_blank');
+      } else if (action.includes('View Extractions') || action.includes('Export Data')) {
+        window.open('/analytics/documents', '_blank');
+      }
     }
   };
 
@@ -142,7 +175,7 @@ export const AIAgentRecommendations: React.FC = () => {
                   <Button 
                     size="sm" 
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-7"
-                    onClick={() => handleActionClick(achievement.primaryAction)}
+                    onClick={() => handleActionClick(achievement.primaryAction, achievement, true)}
                   >
                     {achievement.primaryAction}
                   </Button>
@@ -150,7 +183,7 @@ export const AIAgentRecommendations: React.FC = () => {
                     size="sm" 
                     variant="outline"
                     className="text-xs px-3 py-1 h-7"
-                    onClick={() => handleActionClick(achievement.secondaryAction)}
+                    onClick={() => handleActionClick(achievement.secondaryAction, achievement, false)}
                   >
                     {achievement.secondaryAction}
                   </Button>
