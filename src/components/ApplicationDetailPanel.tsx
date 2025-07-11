@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle, Brain, Lightbulb, Sparkles, Bot, Zap } from 'lucide-react';
+import { X, FileText, Mail, Database, Eye, AlertTriangle, Clock, CheckCircle, Brain, Lightbulb, Sparkles, Bot, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { Application } from '@/types';
 import { ValidationStepCarousel } from './ValidationStepCarousel';
@@ -18,6 +19,7 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
   const { setSelectedApplication } = useApplicationStore();
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [emailAction, setEmailAction] = useState<string>('');
+  const [showAIRecommendations, setShowAIRecommendations] = useState(false);
 
   const handleFullReview = () => {
     // Open ticket detail in new tab
@@ -167,90 +169,117 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
     
     return (
       <div className="space-y-6">
-        {/* AI Agent Header - More Prominent */}
-        <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-200 p-5 rounded-xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl shadow-sm">
-              <Sparkles className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900 mb-1">AI Agent Analysis</h3>
-              <p className="text-sm text-gray-600">
-                Real-time insights for {application.clientName}'s onboarding
-              </p>
-            </div>
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm">
-              <Bot className="w-4 h-4 text-purple-600" />
-              <span className="text-xs font-medium text-purple-700">AI Powered</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced AI Recommendations */}
-        <div className="space-y-4">
-          <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-            <Brain className="w-5 h-5 text-purple-600" />
-            Smart Recommendations
-          </h4>
-          
-          {aiRecommendations.map((rec, idx) => {
-            const Icon = rec.icon;
-            const priorityColors = {
-              high: 'from-red-50 to-pink-50 border-red-300 text-red-800',
-              medium: 'from-yellow-50 to-orange-50 border-yellow-300 text-yellow-800',
-              low: 'from-green-50 to-emerald-50 border-green-300 text-green-800'
-            };
-            
-            return (
-              <div key={idx} className={`bg-gradient-to-r ${priorityColors[rec.priority as keyof typeof priorityColors]} border-2 p-4 rounded-xl shadow-sm`}>
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <p className="font-semibold text-sm">{rec.action}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        rec.priority === 'high' ? 'bg-red-200 text-red-800' :
-                        rec.priority === 'medium' ? 'bg-yellow-200 text-yellow-800' :
-                        'bg-green-200 text-green-800'
-                      }`}>
-                        {rec.priority.toUpperCase()}
-                      </span>
-                      <span className="text-xs bg-white px-2 py-0.5 rounded-full text-gray-600">
-                        {rec.aiConfidence}% confidence
-                      </span>
-                    </div>
-                    <p className="text-xs opacity-90 mb-2">{rec.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs bg-white bg-opacity-70 px-2 py-1 rounded text-gray-600">
-                        {rec.category}
-                      </span>
-                      <Button 
-                        size="sm" 
-                        className="h-7 text-xs bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
-                        onClick={() => handleTakeAction(rec.action, rec.category)}
-                      >
-                        Take Action
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Quick Overview */}
+        {/* Ticket Summary - Prominent Default View */}
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <h4 className="font-semibold text-gray-900 mb-2">Application Status</h4>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div><span className="text-gray-500">Stage:</span> {application.stage}</div>
-            <div><span className="text-gray-500">Status:</span> {application.status}</div>
-            <div><span className="text-gray-500">SLA:</span> {application.slaHours}h left</div>
-            <div><span className="text-gray-500">Progress:</span> {application.progress}/{application.totalSteps}</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Ticket Summary</h3>
+          <div className="grid grid-cols-1 gap-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Client:</span> 
+              <span className="font-medium">{application.clientName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Account Type:</span> 
+              <span className="font-medium">{application.accountType}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Current Stage:</span> 
+              <span className="font-medium">{application.stage}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Status:</span> 
+              <span className={`font-medium ${application.exceptions > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {application.status}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Progress:</span> 
+              <span className="font-medium">{application.progress}/{application.totalSteps} steps</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">SLA Status:</span> 
+              <span className={`font-medium ${
+                application.slaHours <= 2 ? 'text-red-600' :
+                application.slaHours <= 6 ? 'text-yellow-600' :
+                'text-green-600'
+              }`}>
+                {application.slaHours}h remaining
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* AI Recommendations - Collapsible */}
+        <Card className="p-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowAIRecommendations(!showAIRecommendations)}
+            className="w-full flex items-center justify-between p-0 h-auto hover:bg-transparent"
+          >
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <span className="font-semibold text-gray-900">AI Agent Recommendations</span>
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                {aiRecommendations.length} insights
+              </span>
+            </div>
+            {showAIRecommendations ? (
+              <ChevronUp className="w-4 h-4 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-600" />
+            )}
+          </Button>
+          
+          {showAIRecommendations && (
+            <div className="mt-4 pt-4 border-t space-y-4">
+              {aiRecommendations.map((rec, idx) => {
+                const Icon = rec.icon;
+                const priorityColors = {
+                  high: 'from-red-50 to-pink-50 border-red-300 text-red-800',
+                  medium: 'from-yellow-50 to-orange-50 border-yellow-300 text-yellow-800',
+                  low: 'from-green-50 to-emerald-50 border-green-300 text-green-800'
+                };
+                
+                return (
+                  <div key={idx} className={`bg-gradient-to-r ${priorityColors[rec.priority as keyof typeof priorityColors]} border-2 p-4 rounded-xl shadow-sm`}>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-white rounded-lg shadow-sm">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="font-semibold text-sm">{rec.action}</p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            rec.priority === 'high' ? 'bg-red-200 text-red-800' :
+                            rec.priority === 'medium' ? 'bg-yellow-200 text-yellow-800' :
+                            'bg-green-200 text-green-800'
+                          }`}>
+                            {rec.priority.toUpperCase()}
+                          </span>
+                          <span className="text-xs bg-white px-2 py-0.5 rounded-full text-gray-600">
+                            {rec.aiConfidence}% confidence
+                          </span>
+                        </div>
+                        <p className="text-xs opacity-90 mb-2">{rec.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs bg-white bg-opacity-70 px-2 py-1 rounded text-gray-600">
+                            {rec.category}
+                          </span>
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-xs bg-white text-gray-700 hover:bg-gray-50 shadow-sm"
+                            onClick={() => handleTakeAction(rec.action, rec.category)}
+                          >
+                            Take Action
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
 
         {/* Issue Details */}
         {issues.length > 0 && (
@@ -314,26 +343,6 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
             {application.documents.length > 3 && (
               <p className="text-xs text-gray-500">+{application.documents.length - 3} more documents</p>
             )}
-          </div>
-        </div>
-
-        {/* SLA Status */}
-        <div>
-          <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            SLA Status
-          </h4>
-          <div className={`p-3 rounded border ${
-            application.slaHours <= 2 ? 'bg-red-50 border-red-200 text-red-700' :
-            application.slaHours <= 6 ? 'bg-yellow-50 border-yellow-200 text-yellow-700' :
-            'bg-green-50 border-green-200 text-green-700'
-          }`}>
-            <p className="text-sm">
-              <span className="font-medium">{application.slaHours} hours remaining</span>
-              {application.slaHours <= 2 && ' - Urgent attention required'}
-              {application.slaHours > 2 && application.slaHours <= 6 && ' - Monitor closely'}
-              {application.slaHours > 6 && ' - On track'}
-            </p>
           </div>
         </div>
 
