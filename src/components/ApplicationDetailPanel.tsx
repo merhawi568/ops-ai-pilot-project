@@ -277,52 +277,41 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
                   </div>
                 );
               })}
+
+              {/* Issues Detected Section within AI Recommendations */}
+              {issues.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    Issues Detected by AI ({issues.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {issues.map((issue, idx) => {
+                      const Icon = issue.icon;
+                      const colorClasses = {
+                        error: 'text-red-700 bg-red-50 border-red-200',
+                        warning: 'text-yellow-700 bg-yellow-50 border-yellow-200',
+                        info: 'text-blue-700 bg-blue-50 border-blue-200'
+                      };
+                      
+                      return (
+                        <div key={idx} className={`p-3 rounded border ${colorClasses[issue.type as keyof typeof colorClasses]}`}>
+                          <div className="flex items-start gap-2">
+                            <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-xs">{issue.title}</p>
+                              <p className="text-xs mt-1 opacity-90">{issue.description}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Card>
-
-        {/* Issue Details */}
-        {issues.length > 0 && (
-          <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-            <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" />
-              Issues Detected ({issues.length})
-            </h4>
-            <div className="space-y-3">
-              {issues.map((issue, idx) => {
-                const Icon = issue.icon;
-                const colorClasses = {
-                  error: 'text-red-700 bg-red-100 border-red-300',
-                  warning: 'text-yellow-700 bg-yellow-100 border-yellow-300',
-                  info: 'text-blue-700 bg-blue-100 border-blue-300'
-                };
-                
-                return (
-                  <div key={idx} className={`p-3 rounded border ${colorClasses[issue.type as keyof typeof colorClasses]}`}>
-                    <div className="flex items-start gap-2">
-                      <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-sm">{issue.title}</p>
-                        <p className="text-xs mt-1 opacity-90">{issue.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* No Issues */}
-        {issues.length === 0 && (
-          <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-            <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              No Issues Detected
-            </h4>
-            <p className="text-sm text-green-700">This application is progressing normally without exceptions.</p>
-          </div>
-        )}
 
         {/* Document Status */}
         <div>
