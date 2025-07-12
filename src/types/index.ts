@@ -14,6 +14,7 @@ export interface Application {
   sorData: SORData;
   aiSuggestions?: AISuggestion[];
   extractedFields?: ExtractedField[];
+  color:string;
 }
 
 export interface Document {

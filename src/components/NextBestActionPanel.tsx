@@ -3,14 +3,19 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Clock, User, Calendar, Activity, Bot, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, Clock, User, Calendar, Activity, Bot, CheckCircle, ChevronDown, ChevronUp, Settings,Sparkles } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ProgressRing } from '@/components/ui/progress-ring';
+import { OpsMap } from '@/components/OpsMap';
+import { SystemInsightsModal } from '@/components/SystemInsightsModal';
 
 export const NextBestActionPanel: React.FC = () => {
   const { applications, setSelectedApplication } = useApplicationStore();
   const [showAIRecommendations, setShowAIRecommendations] = useState(false);
+  const [showSystemInsights, setShowSystemInsights] = useState(false);
+  const [showOpsMap, setShowOpsMap] = useState(false);
+  const [showFlagged, setShowFlagged] = useState(true);
 
   const handleTicketClick = (app: any) => {
     window.open(`/ticket/${app.id}`, '_blank');
@@ -64,29 +69,72 @@ export const NextBestActionPanel: React.FC = () => {
            (app.status.includes('Escalated'));
   };
 
+  const SELECTED_PILL_CLASS = 'px-4 border border-gray-300 rounded-full text-sm text-white bg-blue-500 p-4 w-[150px] text-center cursor-pointer  font-semibold'
+
+  const [selectedPill, setSelectedPill] = useState('Flagged')
+
+  const PILLS = [
+    {
+        label:'Flagged',
+        className:'px-4 border border-gray-300 rounded-full text-sm text-gray-700 bg-red-100 p-4  w-[150px] text-center cursor-pointer font-semibold'
+    },
+    {
+        label:'Ops Map',
+        className:'px-4 border border-gray-300 rounded-full text-sm text-gray-700 bg-orange-50 p-4  w-[150px] text-center cursor-pointer font-semibold'
+    },
+    {
+        label:'Doc Collection',
+        className:'px-4 border border-gray-300 rounded-full text-sm text-gray-700 bg-blue-50 p-4  w-[150px] text-center cursor-pointer font-semibold'
+    },
+    {
+        label:'AI Extraction',
+        className:'px-4 border border-gray-300 rounded-full text-sm text-gray-700 bg-green-50 p-4  w-[150px] text-center cursor-pointer font-semibold'
+    },
+    {
+        label:'Doc Validation',
+        className:'px-4 border border-gray-300 rounded-full text-sm text-gray-700 bg-yellow-50 p-4  w-[150px] text-center cursor-pointer font-semibold'
+    },
+    {
+        label:'Final Approval',
+        className:'px-4 border border-gray-300 rounded-full text-sm text-gray-700 bg-green-200 p-4  w-[150px] text-center cursor-pointer font-semibold'
+    }
+
+  ]
+
+  const handlePillChange = (pill) => {
+    setSelectedPill(pill.label)
+    if (pill.label == 'Flagged') {
+        setShowFlagged(true)
+        setShowOpsMap(false)
+    } else if (pill.label == 'Ops Map') {
+        setShowFlagged(false)
+        setShowOpsMap(true)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {/* AI Recommendations - Collapsible */}
-      <Card className="p-4">
-        <Button
-          variant="ghost"
-          onClick={() => setShowAIRecommendations(!showAIRecommendations)}
-          className="w-full flex items-center justify-between p-0 h-auto hover:bg-transparent"
-        >
-          <div className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-purple-600" />
-            <span className="font-semibold text-gray-900">AI Agent Recommendations</span>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-              Smart Insights
-            </Badge>
-          </div>
-          {showAIRecommendations ? (
-            <ChevronUp className="w-4 h-4 text-gray-600" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-gray-600" />
-          )}
-        </Button>
-        
+      <Card className="p-1">
+      <div className="flex item-center justify-center">
+          {PILLS.map((pill,index) => (
+              <span key={index} className={selectedPill == pill.label?SELECTED_PILL_CLASS:pill.className} onClick={(e)=> {handlePillChange(pill)}}>
+                {pill.label}
+              </span>
+          ))}
+          <span className='px-4 border justify-center item-center border-gray-300 rounded-full text-sm text-gray-700 bg-sky-50 p-4  w-[150px] text-center cursor-pointer font-semibold' onClick={() => setShowSystemInsights(true)}>
+            <table width="100%">
+                <tr>
+                    <td align='right'><Settings className="w-4 h-4" />
+                    </td>
+                    <td align='left'>Insights
+                    </td>
+                </tr>
+            </table>
+
+          </span>
+
+       </div>
         {showAIRecommendations && (
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-gray-600 mb-4">
@@ -100,8 +148,13 @@ export const NextBestActionPanel: React.FC = () => {
         )}
       </Card>
 
-      {/* Active Client Onboarding Pipeline - Always Visible */}
       <Card className="p-6">
+      {showOpsMap?(<OpsMap/>):null}
+
+      {/* Active Client Onboarding Pipeline - Always Visible */}
+      {showFlagged?
+      (
+      <div>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">Active Client Onboarding Pipeline</h3>
@@ -112,110 +165,89 @@ export const NextBestActionPanel: React.FC = () => {
             {applications.length} Active
           </Badge>
         </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b text-left">
-                <th className="pb-3 text-sm font-medium text-gray-600">Ticket ID</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">Client & Account</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">Current Stage</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">Status & Progress</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">High Priority</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">AI Insights</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">Next Action</th>
-                <th className="pb-3 text-sm font-medium text-gray-600">SLA Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {applications.map((app) => (
-                <tr 
-                  key={app.id} 
-                  className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => handleRowClick(app)}
-                >
-                  <td className="py-4">
-                    <span 
-                      className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTicketClick(app);
-                      }}
-                    >
-                      {app.id}
-                    </span>
-                  </td>
-                  <td className="py-4">
-                    <div>
-                      <div className="font-medium text-gray-900">{app.clientName}</div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                        <User className="w-3 h-3" />
-                        {app.accountType}
+        {applications.map((app) => (
+        <div className={`p-4 rounded-xl border green transition-all hover:shadow-lg bg-${app.color}-50 `} onClick={() => handleRowClick(app)} style={{cursor: 'pointer'}}>
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-medium text-gray-900">{app.clientName}</div>
+              </div>
+              <table width="100%" cellspacing='10'>
+                <tr>
+                    <td align="left" style={{ width: `600px` }}>
+                        <span
+                          className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTicketClick(app);
+                          }}
+                        >
+                          Case Reference : {app.id}
+                        </span>
+                    </td>
+                    <td align="left">
+                      <div className="text-sm font-medium text-gray-900">
+                        Account Type : {app.accountType}
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{app.stage}</div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                        <Calendar className="w-3 h-3" />
-                        Step {app.progress} of {app.totalSteps}
+                    </td>
+                </tr>
+                <tr>
+                    <td style={{paddingTop:'10px'}}>
+                      <div className="text-sm font-medium text-gray-900">
+                        Workflow Stage : {app.stage}
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="space-y-2">
-                      <StatusBadge status={app.status} exceptions={app.exceptions} />
+                    </td>
+                    <td>
+
                       <div className="flex items-center gap-2">
-                        <ProgressRing 
-                          progress={app.progress} 
-                          total={app.totalSteps} 
-                          size="sm" 
+                        <div className="text-sm font-medium text-gray-900">
+                            Progress :
+                        </div>
+                        <ProgressRing
+                          progress={app.progress}
+                          total={app.totalSteps}
+                          size="sm"
                         />
                         <span className="text-xs text-gray-500">
                           {Math.round((app.progress / app.totalSteps) * 100)}%
                         </span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex items-center">
-                      {isHighPriority(app) ? (
-                        <Badge variant="destructive" className="text-xs">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Yes
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-gray-400">No</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-2">
-                      <Bot className={`w-4 h-4 ${app.exceptions > 0 ? 'text-amber-600' : 'text-green-600'}`} />
-                      <span className={`text-xs font-medium ${app.exceptions > 0 ? 'text-amber-700' : 'text-green-700'}`}>
-                        {getAIInsight(app)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-1 rounded">
-                      {getNextAction(app)}
-                    </div>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span className={`text-sm font-medium ${getSLAColor(app.slaHours)}`}>
-                        {app.slaHours}h left
-                      </span>
-                    </div>
-                  </td>
+                    </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                <tr>
+                    <td style={{paddingTop:'10px'}}>
+                    <div className="text-sm font-medium text-gray-900 w-[300px]">
+                    <table>
+                        <tr>
+                            <td>Next Best Action : {getNextAction(app)}</td>
+                            <td><Sparkles className="w-5 h-5 text-purple-600" /></td>
+                        </tr>
+                    </table>
+
+                      </div>
+                    </td>
+                    <td>
+                    <div className="text-sm font-medium text-gray-900">
+                        SLA hours : {app.slaHours}h left
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style={{paddingTop:'10px'}}>
+                      {isHighPriority(app) ? (
+                          <div className="text-sm font-medium text-gray-900">High Priority : Yes</div>
+                      ) : (
+                        <div className="text-sm font-medium text-gray-900">High Priority : No</div>
+                      )}
+                    </td>
+                    <td>
+                    </td>
+               </tr>
+              </table>
+            </div>
+          </div>
+        </div>))}
 
         {/* AI Insights Footer */}
         <div className="flex items-center justify-between text-sm text-gray-600 px-2 mt-4">
@@ -223,12 +255,15 @@ export const NextBestActionPanel: React.FC = () => {
             <Clock className="w-4 h-4" />
             <span>AI insights updated 30 seconds ago</span>
           </div>
-          <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            View AI Analytics Dashboard
-            <ArrowRight className="w-3 h-3 ml-1" />
-          </Button>
         </div>
+      </div>
+      )
+      :null}
       </Card>
+      <SystemInsightsModal
+        isOpen={showSystemInsights}
+        onClose={() => setShowSystemInsights(false)}
+      />
     </div>
   );
 };

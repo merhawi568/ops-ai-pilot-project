@@ -214,7 +214,7 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-600" />
-              <span className="font-semibold text-gray-900">AI Agent Recommendations</span>
+              <span className="font-semibold text-gray-900">Ops Buddy Recommendations</span>
               <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
                 {aiRecommendations.length} insights
               </span>
@@ -371,7 +371,7 @@ export const ApplicationDetailPanel: React.FC<ApplicationDetailPanelProps> = ({ 
   };
 
   return (
-    <div className="fixed left-0 top-0 h-full w-96 bg-white shadow-xl border-r z-40 overflow-y-auto">
+    <div className="fixed right-0 top-0 h-full bg-white shadow-xl border-r z-40 overflow-y-auto">
       <div className="p-4 border-b flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">{application.clientName}</h3>

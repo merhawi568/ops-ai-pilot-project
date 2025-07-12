@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, CheckCircle, Zap, FileText, Clock, AlertTriangle, TrendingUp, Activity, Mail, Users, MessageSquare } from 'lucide-react';
+import { Sparkles, CheckCircle, Zap, FileText, Clock, AlertTriangle, TrendingUp, Activity, Mail, Users, MessageSquare,StepForward } from 'lucide-react';
 import { useApplicationStore } from '@/store/useApplicationStore';
 
 export const AIAgentRecommendations: React.FC = () => {
@@ -26,6 +26,18 @@ export const AIAgentRecommendations: React.FC = () => {
         primaryAction: 'Review & Approve',
         secondaryAction: 'View Details',
         color: 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
+        iconColor: 'text-green-600',
+        stats: `${readyForApproval.length} ready`,
+        tickets: readyForApproval,
+        stage: 'approval'
+      });
+      achievements.push({
+        icon: StepForward,
+        title: 'Optimize document collection',
+        description: `3 Applications have data already available and can be fast tracked based on available scanned copies of the required documentation. Please approve if you want to proceed.`,
+        primaryAction: 'Review & Approve',
+        secondaryAction: 'View Details',
+        color: 'bg-gradient-to-r from-yellow-50 to-yellow-50 border-yellow-200',
         iconColor: 'text-green-600',
         stats: `${readyForApproval.length} ready`,
         tickets: readyForApproval,
@@ -142,7 +154,7 @@ export const AIAgentRecommendations: React.FC = () => {
           <Sparkles className="w-6 h-6 text-purple-600" />
         </div>
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">AI Agent Recommendations</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-1">Ops Buddy Recommendations</h2>
           <p className="text-sm text-gray-600">
             Intelligent automation and optimization insights
           </p>

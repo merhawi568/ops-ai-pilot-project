@@ -18,6 +18,7 @@ const mockApplications: Application[] = [
   {
     id: 'ON-2025-0450',
     clientName: 'Global Health Trust',
+    color:'blue',
     accountType: 'Trust',
     stage: 'Doc Collection',
     status: 'Missing docs',
@@ -53,6 +54,7 @@ const mockApplications: Application[] = [
   {
     id: 'ON-2025-0455',
     clientName: 'Elisa Kim',
+    color:'green',
     accountType: 'Cash Mgmt',
     stage: 'AI Extraction',
     status: 'Escalated',
@@ -93,6 +95,7 @@ const mockApplications: Application[] = [
   {
     id: 'ON-2025-0456',
     clientName: 'Devlin Patel',
+    color:'yellow',
     accountType: 'Investment',
     stage: 'Document Validation',
     status: 'Missing passport',
@@ -127,6 +130,7 @@ const mockApplications: Application[] = [
   {
     id: 'ON-2025-0458',
     clientName: 'Rachel Nunez',
+    color:'green',
     accountType: 'Investment',
     stage: 'AI Extraction',
     status: 'Low confidence',
@@ -164,6 +168,7 @@ const mockApplications: Application[] = [
   {
     id: 'ON-2025-0459',
     clientName: 'Tyrell Systems',
+    color:'red',
     accountType: 'Cash Mgmt',
     stage: 'Final Approval',
     status: 'Pending Approval',
@@ -206,7 +211,7 @@ export const useApplicationStore = create<ApplicationStore>((set, get) => ({
     filters: { ...state.filters, [key]: value }
   })),
   updateApplication: (id, updates) => set((state) => ({
-    applications: state.applications.map(app => 
+    applications: state.applications.map(app =>
       app.id === id ? { ...app, ...updates } : app
     )
   }))
