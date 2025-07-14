@@ -22,7 +22,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">IntelliOPS</h1>
-              <p className="text-sm text-gray-600">AI-Powered Client Onboarding Dashboard</p>
+              <p className="text-sm text-gray-600">Persona - Client Onboarding</p>
             </div>
           </div>
         </div>
