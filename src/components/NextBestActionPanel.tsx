@@ -172,7 +172,7 @@ export const NextBestActionPanel: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium text-gray-900">{app.clientName}</div>
               </div>
-              <table width="100%" cellspacing='10'>
+              <table width="100%" cellSpacing='10'>
                 <tr>
                     <td align="left" style={{ width: `600px` }}>
                         <span

@@ -8,7 +8,7 @@ import { useApplicationStore } from '@/store/useApplicationStore';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ProgressRing } from '@/components/ui/progress-ring';
 
-export const OpsMapCell: React.FC = ({ai,human}) => {
+export const OpsMapCell: React.FC<{ai: number; human: number}> = ({ai,human}) => {
 
   return (
                   <table>

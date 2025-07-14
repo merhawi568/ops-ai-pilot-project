@@ -236,7 +236,7 @@ export const OpsMap: React.FC = () => {
             <thead>
               <tr className="border-b text-left">
                 <th className="pb-3 text-sm font-medium text-black-600">Intent</th>
-                <th className="pb-3 text-sm font-medium text-black-600" colspan='5'>
+                <th className="pb-3 text-sm font-medium text-black-600" colSpan={5}>
                     <table cellSpacing='10' cellPadding='5'>
                         <tr>
                             <td>Exceptions</td>
